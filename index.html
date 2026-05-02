@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CityFix | Report Civic Issues</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui; }
+    :root {
+        --bg: #f5f5f0;
+        --card: #ffffff;
+        --text: #111;
+        --primary: #7b1e3a;
+        --secondary: #1d4d3d;
+        --accent: #c6a15b;
+        --input: #f0f0f0;
+    }
+    .dark {
+        --bg: #08110f;
+        --card: #101b18;
+        --text: #fff;
+        --primary: #8f2347;
+        --secondary: #295d4b;
+        --accent: #d4b16a;
+        --input: #172420;
+    }
+    body { background: var(--bg); color: var(--text); transition: 0.3s; }
+    .container { max-width: 1000px; margin: auto; padding: 20px; }
+    .nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 15px; }
+    .logo { font-size: 44px; font-weight: 800; color: var(--primary); }
+    .theme-btn { padding: 12px 18px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; cursor: pointer; font-weight: 700; }
+    .hero { padding: 40px 0 20px; text-align: center; }
+    .hero h1 { font-size: 52px; }
+    .hero p { margin-top: 16px; font-size: 18px; opacity: 0.8; }
+    .card { background: var(--card); padding: 28px; border-radius: 28px; margin-top: 24px; box-shadow: 0 10px 35px rgba(0,0,0,0.08); }
+    input, textarea, select { width: 100%; padding: 16px; margin-top: 14px; border: none; border-radius: 16px; background: var(--input); color: var(--text); font-size: 15px; }
+    textarea { min-height: 120px; resize: vertical; }
+    select option { padding: 10px; }
+    optgroup { font-weight: 800; color: var(--accent); }
+    button { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-weight: 700; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .preview { width: 100%; margin-top: 14px; border-radius: 18px; display: none; }
+    .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
+    .status-Pending { background: #e67e22; color: white; }
+    .status-In-Progress { background: #3498db; color: white; }
+    .status-Resolved { background: #27ae60; color: white; }
+    .track-result-card { background: var(--card); padding: 18px; border-radius: 24px; margin-top: 15px; border: 1px solid var(--accent); }
+    .gps-hint { font-size: 12px; color: var(--accent); margin-top: 8px; text-align: center; }
+    .live-badge { background: #27ae60; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 10px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    @media (max-width: 700px) { .hero h1 { font-size: 36px; } .grid { grid-template-columns: 1fr; } .nav { flex-direction: column; } }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="nav">
+        <div class="logo">🏙️ CityFix</div>
+        <button class="theme-btn" onclick="toggleTheme()">🌗 Theme</button>
+    </div>
+    <div class="hero">
+        <h1>Report & Track<br>Civic Issues</h1>
+        <p>Your voice builds better cities — transparent, accountable, fast.</p>
+    </div>
+    
+    <div class="card">
+        <h2>📝 Report an Issue</h2>
+        <input id="name" placeholder="Your Name">
+        <select id="category">
+            <optgroup label="🏗️ INFRASTRUCTURE">
+                <option>Roads & Potholes</option>
+                <option>Drainage/Stormwater Blockage</option>
+                <option>Footpath Damage</option>
+                <option>Building Violations</option>
+            </optgroup>
+            <optgroup label="💧 UTILITIES">
+                <option>Water Supply</option>
+                <option>Electricity</option>
+            </optgroup>
+            <optgroup label="🚦 TRANSPORT & SAFETY">
+                <option>Safety & Lighting</option>
+                <option>Traffic Signal Malfunction</option>
+                <option>Open Manholes (Safety Hazard)</option>
+                <option>Stray Animals</option>
+            </optgroup>
+            <optgroup label="🧹 CLEANLINESS">
+                <option>Cleanliness & Waste</option>
+                <option>Public Toilet Maintenance</option>
+            </optgroup>
+            <optgroup label="🌳 ENVIRONMENT">
+                <option>Tree Fall/Dangerous Trees</option>
+                <option>Air Pollution</option>
+                <option>Noise Pollution</option>
+            </optgroup>
+            <optgroup label="📋 OTHER">
+                <option>Others</option>
+            </optgroup>
+        </select>
+        <textarea id="description" placeholder="Describe the issue in detail..."></textarea>
+        <input id="location" placeholder="📍 Location">
+        <div class="grid">
+            <button onclick="useGPS()">📍 Detect Location</button>
+            <button onclick="clearForm()">🗑️ Clear</button>
+        </div>
+        <input type="file" id="photo" accept="image/*">
+        <img id="preview" class="preview">
+        <button onclick="submitComplaint()">🚀 Submit Report</button>
+    </div>
+    
+    <div class="card">
+        <h2>📌 Your Last Complaint <span class="live-badge">LIVE</span></h2>
+        <div id="lastComplaintContent"></div>
+    </div>
+    
+    <div class="card">
+        <h2>🔍 Track Any Complaint</h2>
+        <p style="margin-bottom: 10px;">Enter Case ID (e.g., CFX-001)</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <input id="trackId" placeholder="Enter Case ID" style="flex: 2;">
+            <button onclick="trackComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
+        </div>
+        <div id="trackResult"></div>
+    </div>
+</div>
+
+<script>
+// ========== YOUR RENDER API URL ==========
+const API_URL = "https://YOUR-RENDER-URL.onrender.com";
+// ==========================================
+
+let uploadedImage = "";
+let lastComplaintId = null;
+let updateInterval = null;
+
+function toggleTheme() { document.body.classList.toggle("dark"); }
+
+function showPopup(msg) {
+    let popup = document.getElementById("popup");
+    if(!popup) {
+        popup = document.createElement("div");
+        popup.id = "popup";
+        popup.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);padding:14px 24px;border-radius:40px;z-index:9999;font-weight:bold;box-shadow:0 5px 20px rgba(0,0,0,0.2);";
+        document.body.appendChild(popup);
+    }
+    popup.innerText = msg;
+    popup.style.display = "block";
+    setTimeout(() => popup.style.display = "none", 3000);
+}
+
+document.getElementById("photo")?.addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        uploadedImage = ev.target.result;
+        document.getElementById("preview").src = uploadedImage;
+        document.getElementById("preview").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
+
+async function useGPS() {
+    if(!navigator.geolocation) return showPopup("GPS not supported");
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            const data = await res.json();
+            document.getElementById("location").value = data.display_name || `${lat}, ${lon}`;
+            showPopup("📍 Location detected!");
+        } catch(e) { showPopup("Location detected"); }
+    }, () => showPopup("Allow location access"));
+}
+
+function clearForm() {
+    document.getElementById("name").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("photo").value = "";
+    document.getElementById("preview").style.display = "none";
+    uploadedImage = "";
+}
+
+function calculatePriority(category, description) {
+    const critical = ['danger', 'collapse', 'emergency', 'severe', 'manhole', 'hazard', 'injury', 'fire', 'flood'];
+    const high = ['leak', 'blocked', 'overflow', 'stray', 'animal', 'pollution', 'dark', 'broken'];
+    const lower = description.toLowerCase();
+    if (critical.some(k => lower.includes(k))) return 'Critical';
+    if (high.some(k => lower.includes(k))) return 'High';
+    return 'Normal';
+}
+
+async function submitComplaint() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "Submitting...";
+    
+    const complaint = {
+        name: document.getElementById("name").value || "Anonymous",
+        category: document.getElementById("category").value,
+        description: document.getElementById("description").value,
+        location: document.getElementById("location").value,
+        photo: uploadedImage
+    };
+    
+    try {
+        const res = await fetch(`${API_URL}/api/complaints`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(complaint)
+        });
+        const data = await res.json();
+        showPopup(`✅ Submitted! Case ID: ${data.id}`);
+        lastComplaintId = data.id;
+        loadLastComplaint();
+        startLiveTracking();
+        clearForm();
+    } catch(err) {
+        showPopup("❌ Error submitting. Make sure backend is running.");
+    }
+    
+    btn.disabled = false;
+    btn.innerText = "🚀 Submit Report";
+}
+
+async function loadLastComplaint() {
+    if (!lastComplaintId) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/api/complaint/${lastComplaintId}`);
+        const data = await res.json();
+        
+        let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+        
+        document.getElementById("lastComplaintContent").innerHTML = `
+            <div style="background: var(--input); padding: 16px; border-radius: 20px;">
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    <strong>📌 ${data.category}</strong>
+                    <span class="status-badge ${statusClass}">${data.status}</span>
+                </div>
+                <p style="margin: 10px 0;">${data.description.substring(0, 100)}${data.description.length > 100 ? '...' : ''}</p>
+                <p><strong>📍 Location:</strong> ${data.location}</p>
+                <p><strong>🆔 Case ID:</strong> ${data.id}</p>
+                <p style="font-size: 12px; opacity: 0.7;">Last updated: ${new Date(data.updatedAt).toLocaleString()}</p>
+            </div>
+        `;
+    } catch(e) {}
+}
+
+function startLiveTracking() {
+    if (updateInterval) clearInterval(updateInterval);
+    
+    updateInterval = setInterval(async () => {
+        if (lastComplaintId) {
+            try {
+                const res = await fetch(`${API_URL}/api/complaint/${lastComplaintId}`);
+                const data = await res.json();
+                
+                const currentBadge = document.querySelector("#lastComplaintContent .status-badge");
+                if (currentBadge && currentBadge.innerText !== data.status) {
+                    showPopup(`🔔 Status updated to: ${data.status}`);
+                    loadLastComplaint();
+                }
+            } catch(e) {}
+        }
+    }, 3000);
+}
+
+async function trackComplaint() {
+    const caseId = document.getElementById("trackId").value.trim();
+    if(!caseId) { showPopup("Enter a Case ID"); return; }
+    
+    try {
+        const res = await fetch(`${API_URL}/api/complaint/${caseId}`);
+        if (!res.ok) throw new Error("Not found");
+        const data = await res.json();
+        
+        let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+        
+        document.getElementById("trackResult").innerHTML = `<div class="track-result-card">
+            <h3>📌 ${data.category}</h3>
+            <p><strong>Description:</strong> ${data.description}</p>
+            <p><strong>📍 Location:</strong> ${data.location}</p>
+            <p><strong>Reported by:</strong> ${data.name}</p>
+            <p><strong>📅 Reported:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
+            <p><strong>🔄 Last Update:</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
+            <div style="margin-top:12px;"><span class="status-badge ${statusClass}">${data.status}</span></div>
+            ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
+        </div>`;
+    } catch(e) {
+        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found.</p>`;
+    }
+}
+</script>
+</body>
+</html>
