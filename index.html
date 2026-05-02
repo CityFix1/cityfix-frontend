@@ -1,41 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CityFix | Report Civic Issues</title>
-<style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>CityFix | Report & Track Civic Issues | الإبلاغ عن المشكلات</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; }
     :root {
-        --bg: #f5f5f0;
-        --card: #ffffff;
-        --text: #111;
-        --primary: #7b1e3a;
-        --secondary: #1d4d3d;
-        --accent: #c6a15b;
-        --input: #f0f0f0;
+      --bg: #f5f5f0;
+      --card: #ffffff;
+      --text: #111;
+      --primary: #7b1e3a;
+      --secondary: #1d4d3d;
+      --accent: #c6a15b;
+      --input: #f0f0f0;
     }
     .dark {
-        --bg: #08110f;
-        --card: #101b18;
-        --text: #fff;
-        --primary: #8f2347;
-        --secondary: #295d4b;
-        --accent: #d4b16a;
-        --input: #172420;
+      --bg: #08110f;
+      --card: #101b18;
+      --text: #fff;
+      --primary: #8f2347;
+      --secondary: #295d4b;
+      --accent: #d4b16a;
+      --input: #172420;
     }
     body { background: var(--bg); color: var(--text); transition: 0.3s; }
     .container { max-width: 1000px; margin: auto; padding: 20px; }
     .nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 15px; }
     .logo { font-size: 44px; font-weight: 800; color: var(--primary); }
+    .logo small { font-size: 12px; font-weight: normal; display: block; color: var(--accent); direction: rtl; }
     .theme-btn { padding: 12px 18px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; cursor: pointer; font-weight: 700; }
     .hero { padding: 40px 0 20px; text-align: center; }
     .hero h1 { font-size: 52px; }
     .hero p { margin-top: 16px; font-size: 18px; opacity: 0.8; }
+    .hero .sub-ar { font-size: 14px; direction: rtl; margin-top: 6px; color: var(--accent); }
     .card { background: var(--card); padding: 28px; border-radius: 28px; margin-top: 24px; box-shadow: 0 10px 35px rgba(0,0,0,0.08); }
     input, textarea, select { width: 100%; padding: 16px; margin-top: 14px; border: none; border-radius: 16px; background: var(--input); color: var(--text); font-size: 15px; }
     textarea { min-height: 120px; resize: vertical; }
-    select option { padding: 10px; }
     optgroup { font-weight: 800; color: var(--accent); }
     button { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-weight: 700; cursor: pointer; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -44,357 +45,344 @@
     .status-Pending { background: #e67e22; color: white; }
     .status-In-Progress { background: #3498db; color: white; }
     .status-Resolved { background: #27ae60; color: white; }
+    .complaint-list-item {
+      background: var(--input);
+      padding: 16px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--accent);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .complaint-list-item:hover { transform: translateX(5px); opacity: 0.9; }
     .track-result-card { background: var(--card); padding: 18px; border-radius: 24px; margin-top: 15px; border: 1px solid var(--accent); }
     .gps-hint { font-size: 12px; color: var(--accent); margin-top: 8px; text-align: center; }
     .live-badge { background: #27ae60; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 10px; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-    .complaint-list-item {
-        background: var(--input);
-        padding: 16px;
-        border-radius: 20px;
-        margin-bottom: 12px;
-        border-left: 3px solid var(--accent);
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    .complaint-list-item:hover { transform: translateX(5px); opacity: 0.9; }
-    .refresh-complaints {
-        background: #2c3e50;
-        padding: 8px 16px;
-        border-radius: 40px;
-        font-size: 12px;
-        margin-top: 10px;
-        width: auto;
-        display: inline-block;
-    }
+    .refresh-complaints { background: #2c3e50; padding: 8px 16px; border-radius: 40px; font-size: 12px; margin-top: 10px; width: auto; display: inline-block; }
+    .bilingual-hint { font-size: 11px; margin-top: 8px; opacity: 0.7; direction: rtl; text-align: right; }
     @media (max-width: 700px) { .hero h1 { font-size: 36px; } .grid { grid-template-columns: 1fr; } .nav { flex-direction: column; } }
-</style>
+  </style>
 </head>
 <body>
 <div class="container">
-    <div class="nav">
-        <div class="logo">🏙️ CityFix</div>
-        <button class="theme-btn" onclick="toggleTheme()">🌗 Theme</button>
+  <div class="nav">
+    <div class="logo">🏙️ CityFix <small>منصة الإبلاغ الذكية</small></div>
+    <button class="theme-btn" onclick="toggleTheme()">🌗 Theme / المظهر</button>
+  </div>
+  <div class="hero">
+    <h1>Report & Track<br>Civic Issues</h1>
+    <p>Your voice builds better cities — transparent, accountable, fast.</p>
+    <div class="sub-ar">صوّت يبني مدناً أفضل — شفافية، مساءلة، وسرعة</div>
+  </div>
+
+  <!-- REPORT FORM -->
+  <div class="card">
+    <h2>📝 Report an Issue · الإبلاغ عن مشكلة</h2>
+    <input id="name" placeholder="Your Name / الاسم (اختياري)">
+    <select id="category">
+      <optgroup label="🏗️ INFRASTRUCTURE / البنية التحتية">
+        <option>Roads & Potholes</option><option>Drainage/Stormwater Blockage</option><option>Footpath Damage</option><option>Building Violations</option>
+      </optgroup>
+      <optgroup label="💧 UTILITIES / المرافق">
+        <option>Water Supply</option><option>Electricity</option>
+      </optgroup>
+      <optgroup label="🚦 TRANSPORT & SAFETY / النقل والسلامة">
+        <option>Safety & Lighting</option><option>Traffic Signal Malfunction</option><option>Open Manholes (Safety Hazard)</option><option>Stray Animals</option>
+      </optgroup>
+      <optgroup label="🧹 CLEANLINESS / النظافة">
+        <option>Cleanliness & Waste</option><option>Public Toilet Maintenance</option>
+      </optgroup>
+      <optgroup label="🌳 ENVIRONMENT / البيئة">
+        <option>Tree Fall/Dangerous Trees</option><option>Air Pollution</option><option>Noise Pollution</option>
+      </optgroup>
+      <optgroup label="📋 OTHER / أخرى">
+        <option>Others</option>
+      </optgroup>
+    </select>
+    <textarea id="description" placeholder="Describe the issue in detail ... وصف المشكلة بالتفصيل"></textarea>
+    <input id="location" placeholder="📍 Location / الموقع">
+    <div class="grid">
+      <button onclick="useGPS()">📍 Detect Location · تحديد الموقع</button>
+      <button onclick="clearForm()">🗑️ Clear · مسح</button>
     </div>
-    <div class="hero">
-        <h1>Report & Track<br>Civic Issues</h1>
-        <p>Your voice builds better cities — transparent, accountable, fast.</p>
-        <p style="font-size: 12px; margin-top: 10px;">🔒 Your reports are private. Only YOU can see them from this device.</p>
+    <div class="gps-hint">💡 Click "Detect Location" to auto-fill your address</div>
+    <input type="file" id="photo" accept="image/*">
+    <img id="preview" class="preview">
+    <button onclick="submitComplaint()">🚀 Submit Report · إرسال البلاغ</button>
+  </div>
+
+  <!-- ALL USER COMPLAINTS (PRIVATE) -->
+  <div class="card">
+    <h2>📋 Your Complaints · بلاغاتك <span class="live-badge">PRIVATE · خاص</span></h2>
+    <div id="allComplaintsList"><p style="text-align:center; padding:20px;">Loading your reports ... جاري التحميل</p></div>
+    <button class="refresh-complaints" onclick="loadMyComplaints()">⟳ Refresh · تحديث</button>
+    <div class="bilingual-hint">🔒 Only complaints submitted from THIS device appear here. Click any to view details.<br>🔒 فقط البلاغات المرسلة من هذا الجهاز تظهر هنا. اضغط على أي بلاغ للاطلاع على التفاصيل.</div>
+  </div>
+
+  <!-- TRACK SPECIFIC COMPLAINT -->
+  <div class="card">
+    <h2>🔍 Track a Specific Complaint · تتبع بلاغ محدد</h2>
+    <p style="margin-bottom: 10px;">Enter the Case ID (e.g., CFX-001) · أدخل معرف البلاغ</p>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <input id="trackId" placeholder="Case ID / معرف البلاغ" style="flex: 2;">
+      <button onclick="trackSpecificComplaint()" style="flex: 1; margin-top: 0;">Track → تتبع</button>
     </div>
-    
-    <div class="card">
-        <h2>📝 Report an Issue</h2>
-        <input id="name" placeholder="Your Name">
-        <select id="category">
-            <optgroup label="🏗️ INFRASTRUCTURE">
-                <option>Roads & Potholes</option>
-                <option>Drainage/Stormwater Blockage</option>
-                <option>Footpath Damage</option>
-                <option>Building Violations</option>
-            </optgroup>
-            <optgroup label="💧 UTILITIES">
-                <option>Water Supply</option>
-                <option>Electricity</option>
-            </optgroup>
-            <optgroup label="🚦 TRANSPORT & SAFETY">
-                <option>Safety & Lighting</option>
-                <option>Traffic Signal Malfunction</option>
-                <option>Open Manholes (Safety Hazard)</option>
-                <option>Stray Animals</option>
-            </optgroup>
-            <optgroup label="🧹 CLEANLINESS">
-                <option>Cleanliness & Waste</option>
-                <option>Public Toilet Maintenance</option>
-            </optgroup>
-            <optgroup label="🌳 ENVIRONMENT">
-                <option>Tree Fall/Dangerous Trees</option>
-                <option>Air Pollution</option>
-                <option>Noise Pollution</option>
-            </optgroup>
-            <optgroup label="📋 OTHER">
-                <option>Others</option>
-            </optgroup>
-        </select>
-        <textarea id="description" placeholder="Describe the issue in detail..."></textarea>
-        <input id="location" placeholder="📍 Location">
-        <div class="grid">
-            <button onclick="useGPS()">📍 Detect Location</button>
-            <button onclick="clearForm()">🗑️ Clear</button>
-        </div>
-        <input type="file" id="photo" accept="image/*">
-        <img id="preview" class="preview">
-        <button onclick="submitComplaint()">🚀 Submit Report</button>
-    </div>
-    
-    <div class="card">
-        <h2>📋 Your Complaints <span class="live-badge">PRIVATE</span></h2>
-        <div id="allComplaintsList">
-            <p style="text-align: center; padding: 20px;">Loading your complaints...</p>
-        </div>
-        <button class="refresh-complaints" onclick="loadMyComplaints()">⟳ Refresh</button>
-        <p style="font-size: 12px; margin-top: 12px; opacity: 0.7;">🔒 Only complaints submitted from THIS device appear here. Click any to view details.</p>
-    </div>
-    
-    <div class="card">
-        <h2>🔍 Track a Specific Complaint</h2>
-        <p style="margin-bottom: 10px;">Enter the Case ID to see details (e.g., CFX-001)</p>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <input id="trackId" placeholder="Enter Case ID" style="flex: 2;">
-            <button onclick="trackSpecificComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
-        </div>
-        <div id="trackResult"></div>
-    </div>
+    <div id="trackResult"></div>
+  </div>
 </div>
 
 <script>
-// ========== YOUR ACTUAL RENDER URL ==========
-const API_URL = "https://cityfix-backend-bq0n.onrender.com";
-// ============================================
+  // ========== CONFIGURATION (YOUR RENDER BACKEND) ==========
+  const API_URL = "https://cityfix-backend-bq0n.onrender.com";
+  // =========================================================
 
-let uploadedImage = "";
-let deviceToken = null;
-let updateInterval = null;
+  let uploadedImage = "";
+  let deviceToken = null;
+  let updateInterval = null;
 
-function getDeviceToken() {
+  // Device token for privacy (same device = same token)
+  function getDeviceToken() {
     let token = localStorage.getItem("cityfix_device_token");
     if (!token) {
-        token = Math.random().toString(36).substring(2, 20) + Math.random().toString(36).substring(2, 20);
-        localStorage.setItem("cityfix_device_token", token);
+      token = Math.random().toString(36).substring(2, 20) + Math.random().toString(36).substring(2, 20);
+      localStorage.setItem("cityfix_device_token", token);
     }
     return token;
-}
+  }
+  deviceToken = getDeviceToken();
 
-deviceToken = getDeviceToken();
-
-function toggleTheme() { 
+  // Theme persistence
+  function toggleTheme() { 
     document.body.classList.toggle("dark");
     const theme = document.body.classList.contains("dark") ? "dark" : "light";
     localStorage.setItem("cityfix_theme", theme);
-}
-
-function loadTheme() {
+  }
+  function loadTheme() {
     const savedTheme = localStorage.getItem("cityfix_theme");
-    if (savedTheme === "dark") {
-        document.body.classList.add("dark");
-    }
-}
-loadTheme();
+    if (savedTheme === "dark") document.body.classList.add("dark");
+  }
+  loadTheme();
 
-function showPopup(msg) {
+  function showPopup(msg) {
     let popup = document.getElementById("popup");
     if(!popup) {
-        popup = document.createElement("div");
-        popup.id = "popup";
-        popup.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);padding:14px 24px;border-radius:40px;z-index:9999;font-weight:bold;box-shadow:0 5px 20px rgba(0,0,0,0.2);";
-        document.body.appendChild(popup);
+      popup = document.createElement("div");
+      popup.id = "popup";
+      popup.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);padding:14px 24px;border-radius:40px;z-index:9999;font-weight:bold;box-shadow:0 5px 20px rgba(0,0,0,0.2);";
+      document.body.appendChild(popup);
     }
     popup.innerText = msg;
     popup.style.display = "block";
     setTimeout(() => popup.style.display = "none", 3000);
-}
+  }
 
-document.getElementById("photo")?.addEventListener("change", function(e) {
+  // Image preview
+  document.getElementById("photo")?.addEventListener("change", function(e) {
     const file = e.target.files[0];
     if(!file) return;
     const reader = new FileReader();
     reader.onload = function(ev) {
-        uploadedImage = ev.target.result;
-        document.getElementById("preview").src = uploadedImage;
-        document.getElementById("preview").style.display = "block";
+      uploadedImage = ev.target.result;
+      document.getElementById("preview").src = uploadedImage;
+      document.getElementById("preview").style.display = "block";
     };
     reader.readAsDataURL(file);
-});
+  });
 
-async function useGPS() {
+  // GPS detection
+  async function useGPS() {
     if(!navigator.geolocation) return showPopup("GPS not supported");
     navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-            const data = await res.json();
-            document.getElementById("location").value = data.display_name || `${lat}, ${lon}`;
-            showPopup("📍 Location detected!");
-        } catch(e) { showPopup("Location detected"); }
-    }, () => showPopup("Allow location access"));
-}
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        document.getElementById("location").value = data.display_name || `${lat}, ${lon}`;
+        showPopup("📍 Location detected! · تم تحديد الموقع");
+      } catch(e) { showPopup("Location detected"); }
+    }, () => showPopup("Allow location access · اسمح بالوصول للموقع"));
+  }
 
-function clearForm() {
+  function clearForm() {
     document.getElementById("name").value = "";
     document.getElementById("description").value = "";
     document.getElementById("location").value = "";
     document.getElementById("photo").value = "";
     document.getElementById("preview").style.display = "none";
     uploadedImage = "";
-}
+  }
 
-function calculatePriority(category, description) {
+  function calculatePriority(category, description) {
     const critical = ['danger', 'collapse', 'emergency', 'severe', 'manhole', 'hazard', 'injury', 'fire', 'flood'];
     const high = ['leak', 'blocked', 'overflow', 'stray', 'animal', 'pollution', 'dark', 'broken'];
     const lower = description.toLowerCase();
     if (critical.some(k => lower.includes(k))) return 'Critical';
     if (high.some(k => lower.includes(k))) return 'High';
     return 'Normal';
-}
+  }
 
-async function submitComplaint() {
+  // SUBMIT COMPLAINT
+  async function submitComplaint() {
     const btn = event.target;
     btn.disabled = true;
-    btn.innerText = "Submitting...";
+    btn.innerText = "Submitting... جاري الإرسال";
     
     const complaint = {
-        name: document.getElementById("name").value || "Anonymous",
-        category: document.getElementById("category").value,
-        description: document.getElementById("description").value,
-        location: document.getElementById("location").value,
-        photo: uploadedImage,
-        deviceToken: deviceToken
+      name: document.getElementById("name").value || "Anonymous",
+      category: document.getElementById("category").value,
+      description: document.getElementById("description").value,
+      location: document.getElementById("location").value,
+      photo: uploadedImage,
+      deviceToken: deviceToken
     };
     
     try {
-        const res = await fetch(`${API_URL}/api/complaints`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(complaint)
-        });
-        const data = await res.json();
-        
-        const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
-        complaintTokens[data.id] = data.privateToken;
-        localStorage.setItem("cityfix_complaint_tokens", JSON.stringify(complaintTokens));
-        
-        showPopup(`✅ Submitted! Case ID: ${data.id}`);
-        clearForm();
-        loadMyComplaints();
-        startLiveTracking();
+      const res = await fetch(`${API_URL}/api/complaints`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(complaint)
+      });
+      const data = await res.json();
+      // Store private token for this complaint
+      const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
+      complaintTokens[data.id] = data.privateToken;
+      localStorage.setItem("cityfix_complaint_tokens", JSON.stringify(complaintTokens));
+      
+      showPopup(`✅ Submitted! Case ID: ${data.id} · تم الإرسال! المعرف: ${data.id}`);
+      clearForm();
+      loadMyComplaints();
+      startLiveTracking();
     } catch(err) {
-        showPopup("❌ Error submitting. Make sure backend is running.");
-        console.error(err);
+      showPopup("❌ Error submitting. Backend error?");
+      console.error(err);
     }
-    
     btn.disabled = false;
-    btn.innerText = "🚀 Submit Report";
-}
+    btn.innerText = "🚀 Submit Report · إرسال البلاغ";
+  }
 
-async function loadMyComplaints() {
+  // LOAD ALL COMPLAINTS FROM THIS DEVICE
+  async function loadMyComplaints() {
     try {
-        const res = await fetch(`${API_URL}/api/my-complaints`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deviceToken: deviceToken })
-        });
-        const complaints = await res.json();
-        
-        const container = document.getElementById("allComplaintsList");
-        
-        if (complaints.length === 0) {
-            container.innerHTML = "<p style='text-align: center; padding: 20px;'>No complaints yet. Submit your first complaint above!</p>";
-            return;
-        }
-        
-        complaints.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
-        container.innerHTML = complaints.map(c => {
-            let statusClass = c.status === "Pending" ? "status-Pending" : (c.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
-            return `
-                <div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')">
-                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
-                        <div>
-                            <strong>📌 ${c.category}</strong>
-                            <span style="font-size: 11px; opacity: 0.7;"> | ID: ${c.id}</span>
-                        </div>
-                        <span class="status-badge ${statusClass}">${c.status}</span>
-                    </div>
-                    <p style="margin-top: 8px; font-size: 14px;">${c.description.substring(0, 80)}${c.description.length > 80 ? '...' : ''}</p>
-                    <p style="margin-top: 6px; font-size: 12px; opacity: 0.7;">📍 ${c.location.substring(0, 60)}</p>
-                    <p style="margin-top: 4px; font-size: 11px; opacity: 0.5;">Submitted: ${new Date(c.createdAt).toLocaleString()}</p>
-                </div>
-            `;
-        }).join("");
-        
+      const res = await fetch(`${API_URL}/api/my-complaints`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceToken: deviceToken })
+      });
+      const complaints = await res.json();
+      const container = document.getElementById("allComplaintsList");
+      if (complaints.length === 0) {
+        container.innerHTML = "<p style='text-align:center; padding:20px;'>📭 No reports yet. Submit your first complaint.<br>لا توجد بلاغات بعد. أرسل بلاغك الأول.</p>";
+        return;
+      }
+      complaints.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      container.innerHTML = complaints.map(c => {
+        let statusClass = c.status === "Pending" ? "status-Pending" : (c.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+        return `
+          <div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+              <div><strong>📌 ${escapeHtml(c.category)}</strong> <span style="font-size: 11px; opacity:0.7;"> | ID: ${c.id}</span></div>
+              <span class="status-badge ${statusClass}">${c.status}</span>
+            </div>
+            <p style="margin-top: 8px;">${escapeHtml(c.description.substring(0, 80))}${c.description.length > 80 ? '…' : ''}</p>
+            <p style="margin-top: 6px; font-size: 12px;">📍 ${escapeHtml(c.location.substring(0, 60))}</p>
+            <p style="margin-top: 4px; font-size: 11px; opacity:0.6;">📅 ${new Date(c.createdAt).toLocaleString()}</p>
+          </div>
+        `;
+      }).join("");
+      container.innerHTML += `<p style="font-size: 11px; margin-top: 8px; text-align:center; opacity:0.6;">💡 Click any complaint to view full details · اضغط على بلاغ لرؤية التفاصيل</p>`;
     } catch(e) {
-        console.error("Error:", e);
-        document.getElementById("allComplaintsList").innerHTML = "<p style='text-align:center; padding:20px;'>❌ Error loading complaints. Check if backend is running.</p>";
+      console.error(e);
+      document.getElementById("allComplaintsList").innerHTML = "<p style='text-align:center; padding:20px;'>❌ Unable to load complaints. Backend unreachable.</p>";
     }
-}
+  }
 
-async function viewComplaintDetails(complaintId) {
+  // VIEW DETAILS (with private token)
+  async function viewComplaintDetails(complaintId) {
     const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
     const privateToken = complaintTokens[complaintId];
-    
     if (!privateToken) {
-        showPopup("❌ Cannot access complaint details.");
-        return;
+      showPopup("❌ Cannot access details · لا يمكن الوصول للتفاصيل");
+      return;
     }
-    
     try {
-        const res = await fetch(`${API_URL}/api/complaint/${complaintId}/${privateToken}`);
-        if (!res.ok) throw new Error("Access denied");
-        const data = await res.json();
-        
-        let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
-        
-        document.getElementById("trackResult").innerHTML = `
-            <div class="track-result-card">
-                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    <h3>📌 ${data.category}</h3>
-                    <span class="status-badge ${statusClass}">${data.status}</span>
-                </div>
-                <p><strong>Description:</strong> ${data.description}</p>
-                <p><strong>📍 Location:</strong> ${data.location}</p>
-                <p><strong>Reported by:</strong> ${data.name}</p>
-                <p><strong>📅 Reported:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
-                <p><strong>🔄 Last Update:</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
-                ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
-            </div>
-        `;
-        document.getElementById("trackResult").scrollIntoView({ behavior: "smooth" });
+      const res = await fetch(`${API_URL}/api/complaint/${complaintId}/${privateToken}`);
+      if (!res.ok) throw new Error("Access denied");
+      const data = await res.json();
+      let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+      document.getElementById("trackResult").innerHTML = `
+        <div class="track-result-card">
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+            <h3>📌 ${escapeHtml(data.category)}</h3>
+            <span class="status-badge ${statusClass}">${data.status}</span>
+          </div>
+          <p><strong>Description / الوصف:</strong> ${escapeHtml(data.description)}</p>
+          <p><strong>📍 Location / الموقع:</strong> ${escapeHtml(data.location)}</p>
+          <p><strong>Reported by / مقدم البلاغ:</strong> ${escapeHtml(data.name)}</p>
+          <p><strong>📅 Reported / تاريخ الإبلاغ:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
+          <p><strong>🔄 Last Update / آخر تحديث:</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
+          ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
+          <p style="margin-top:8px; font-size:12px;">🔒 Private complaint · بلاغ خاص</p>
+        </div>
+      `;
+      document.getElementById("trackResult").scrollIntoView({ behavior: "smooth" });
     } catch(e) {
-        showPopup("❌ Error loading complaint details");
+      showPopup("Error loading details");
     }
-}
+  }
 
-async function trackSpecificComplaint() {
+  // TRACK SPECIFIC BY ID (only if owned by this device)
+  async function trackSpecificComplaint() {
     const caseId = document.getElementById("trackId").value.trim();
-    if(!caseId) { showPopup("Enter a Case ID"); return; }
-    
+    if(!caseId) { showPopup("Enter a Case ID · أدخل معرف البلاغ"); return; }
     const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
     const privateToken = complaintTokens[caseId];
-    
     if (!privateToken) {
-        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c; text-align:center; padding:20px;">❌ You can only track complaints you submitted from this device.</p>`;
-        return;
+      document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c; text-align:center; padding:20px;">❌ You can only track complaints you submitted from this device.<br>يمكنك فقط تتبع البلاغات التي أرسلتها من هذا الجهاز.</p>`;
+      return;
     }
-    
     try {
-        const res = await fetch(`${API_URL}/api/complaint/${caseId}/${privateToken}`);
-        if (!res.ok) throw new Error("Not found");
-        const data = await res.json();
-        
-        let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
-        
-        document.getElementById("trackResult").innerHTML = `<div class="track-result-card">
-            <h3>📌 ${data.category}</h3>
-            <p><strong>Description:</strong> ${data.description}</p>
-            <p><strong>📍 Location:</strong> ${data.location}</p>
-            <p><strong>Reported by:</strong> ${data.name}</p>
-            <p><strong>📅 Reported:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
-            <p><strong>🔄 Last Update:</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
-            <div style="margin-top:12px;"><span class="status-badge ${statusClass}">${data.status}</span></div>
-            ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
-        </div>`;
+      const res = await fetch(`${API_URL}/api/complaint/${caseId}/${privateToken}`);
+      if (!res.ok) throw new Error("Not found");
+      const data = await res.json();
+      let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+      document.getElementById("trackResult").innerHTML = `
+        <div class="track-result-card">
+          <h3>📌 ${escapeHtml(data.category)}</h3>
+          <p><strong>Description:</strong> ${escapeHtml(data.description)}</p>
+          <p><strong>📍 Location:</strong> ${escapeHtml(data.location)}</p>
+          <p><strong>Reported by:</strong> ${escapeHtml(data.name)}</p>
+          <p><strong>📅 Reported:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
+          <p><strong>🔄 Last Update:</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
+          <div style="margin-top:12px;"><span class="status-badge ${statusClass}">${data.status}</span></div>
+          ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
+        </div>
+      `;
     } catch(e) {
-        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found.</p>`;
+      document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found / لم يتم العثور على البلاغ</p>`;
     }
-}
+  }
 
-function startLiveTracking() {
+  function startLiveTracking() {
     if (updateInterval) clearInterval(updateInterval);
     updateInterval = setInterval(() => { loadMyComplaints(); }, 5000);
-}
+  }
 
-loadMyComplaints();
-startLiveTracking();
+  // Helper XSS
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === "&") return "&amp;";
+      if (m === "<") return "&lt;";
+      if (m === ">") return "&gt;";
+      return m;
+    });
+  }
+
+  // Initial load
+  loadMyComplaints();
+  startLiveTracking();
 </script>
 </body>
 </html>
