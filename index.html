@@ -48,6 +48,7 @@
     .gps-hint { font-size: 12px; color: var(--accent); margin-top: 8px; text-align: center; }
     .live-badge { background: #27ae60; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 10px; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    .private-token { font-size: 11px; background: #e67e22; color: white; padding: 4px 8px; border-radius: 12px; font-family: monospace; margin-left: 8px; }
     @media (max-width: 700px) { .hero h1 { font-size: 36px; } .grid { grid-template-columns: 1fr; } .nav { flex-direction: column; } }
 </style>
 </head>
@@ -60,6 +61,7 @@
     <div class="hero">
         <h1>Report & Track<br>Civic Issues</h1>
         <p>Your voice builds better cities — transparent, accountable, fast.</p>
+        <p style="font-size: 12px; margin-top: 10px;">🔒 Your reports are private. Only YOU can track them.</p>
     </div>
     
     <div class="card">
@@ -107,28 +109,31 @@
     </div>
     
     <div class="card">
-        <h2>📌 Your Last Complaint <span class="live-badge">LIVE</span></h2>
+        <h2>📌 Your Last Complaint <span class="live-badge">PRIVATE</span></h2>
         <div id="lastComplaintContent"></div>
+        <p style="font-size: 12px; margin-top: 10px; opacity: 0.7;">🔒 Only you can see this complaint. Your private token is stored in this browser.</p>
     </div>
     
     <div class="card">
-        <h2>🔍 Track Any Complaint</h2>
-        <p style="margin-bottom: 10px;">Enter Case ID (e.g., CFX-001)</p>
+        <h2>🔍 Track Your Complaint</h2>
+        <p style="margin-bottom: 10px;">Enter the Case ID you received (e.g., CFX-001)</p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <input id="trackId" placeholder="Enter Case ID" style="flex: 2;">
             <button onclick="trackComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
         </div>
         <div id="trackResult"></div>
+        <p style="font-size: 11px; margin-top: 10px; opacity: 0.6;">Only complaints submitted from THIS browser can be tracked.</p>
     </div>
 </div>
 
 <script>
-// ========== YOUR RENDER API URL (CORRECT ONE) ==========
+// ========== YOUR RENDER API URL ==========
 const API_URL = "https://cityfix-backend-bq0n.onrender.com";
-// ========================================================
+// ==========================================
 
 let uploadedImage = "";
 let lastComplaintId = null;
+let lastPrivateToken = null;
 let updateInterval = null;
 
 function toggleTheme() { 
@@ -222,14 +227,20 @@ async function submitComplaint() {
             body: JSON.stringify(complaint)
         });
         const data = await res.json();
-        showPopup(`✅ Submitted! Case ID: ${data.id}`);
+        
+        // Save both ID and private token
         lastComplaintId = data.id;
+        lastPrivateToken = data.privateToken;
+        
         localStorage.setItem("lastComplaintId", lastComplaintId);
+        localStorage.setItem("lastPrivateToken", lastPrivateToken);
+        
+        showPopup(`✅ Submitted! Case ID: ${data.id} - Save this to track your complaint`);
         loadLastComplaint();
         startLiveTracking();
         clearForm();
     } catch(err) {
-        showPopup("❌ Error submitting. Backend may be starting up. Try again in 10 seconds.");
+        showPopup("❌ Error submitting. Try again.");
         console.error(err);
     }
     
@@ -239,14 +250,21 @@ async function submitComplaint() {
 
 async function loadLastComplaint() {
     const savedId = localStorage.getItem("lastComplaintId");
+    const savedToken = localStorage.getItem("lastPrivateToken");
     const idToLoad = lastComplaintId || savedId;
-    if (!idToLoad) return;
+    const tokenToUse = lastPrivateToken || savedToken;
+    
+    if (!idToLoad || !tokenToUse) return;
     
     try {
-        const res = await fetch(`${API_URL}/api/complaint/${idToLoad}`);
-        if (!res.ok) throw new Error("Not found");
+        const res = await fetch(`${API_URL}/api/complaint/${idToLoad}/${tokenToUse}`);
+        if (!res.ok) {
+            if (res.status === 403) {
+                document.getElementById("lastComplaintContent").innerHTML = `<p style="color:#e74c3c;">Access denied. This complaint belongs to another user.</p>`;
+            }
+            return;
+        }
         const data = await res.json();
-        lastComplaintId = data.id;
         
         let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
         
@@ -272,10 +290,13 @@ function startLiveTracking() {
     
     updateInterval = setInterval(async () => {
         const savedId = localStorage.getItem("lastComplaintId");
+        const savedToken = localStorage.getItem("lastPrivateToken");
         const idToCheck = lastComplaintId || savedId;
-        if (idToCheck) {
+        const tokenToUse = lastPrivateToken || savedToken;
+        
+        if (idToCheck && tokenToUse) {
             try {
-                const res = await fetch(`${API_URL}/api/complaint/${idToCheck}`);
+                const res = await fetch(`${API_URL}/api/complaint/${idToCheck}/${tokenToUse}`);
                 if (res.ok) {
                     const data = await res.json();
                     const currentBadge = document.getElementById("liveStatusBadge");
@@ -293,9 +314,25 @@ async function trackComplaint() {
     const caseId = document.getElementById("trackId").value.trim();
     if(!caseId) { showPopup("Enter a Case ID"); return; }
     
+    // Get the private token for this complaint from localStorage
+    const savedToken = localStorage.getItem("lastPrivateToken");
+    const savedId = localStorage.getItem("lastComplaintId");
+    
+    if (!savedToken || savedId !== caseId) {
+        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ You can only track complaints you submitted from this browser.</p>`;
+        return;
+    }
+    
     try {
-        const res = await fetch(`${API_URL}/api/complaint/${caseId}`);
-        if (!res.ok) throw new Error("Not found");
+        const res = await fetch(`${API_URL}/api/complaint/${caseId}/${savedToken}`);
+        if (!res.ok) {
+            if (res.status === 403) {
+                document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Access denied. This complaint belongs to another user.</p>`;
+            } else if (res.status === 404) {
+                document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found.</p>`;
+            }
+            return;
+        }
         const data = await res.json();
         
         let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
@@ -311,14 +348,16 @@ async function trackComplaint() {
             ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
         </div>`;
     } catch(e) {
-        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found.</p>`;
+        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Error loading complaint.</p>`;
     }
 }
 
 // Load last complaint on page load
 const savedId = localStorage.getItem("lastComplaintId");
-if (savedId) {
+const savedToken = localStorage.getItem("lastPrivateToken");
+if (savedId && savedToken) {
     lastComplaintId = savedId;
+    lastPrivateToken = savedToken;
     loadLastComplaint();
     startLiveTracking();
 }
