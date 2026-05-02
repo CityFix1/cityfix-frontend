@@ -82,7 +82,6 @@
         <p style="font-size: 12px; margin-top: 10px;">🔒 Your reports are private. Only YOU can see them from this device.</p>
     </div>
     
-    <!-- Report Form -->
     <div class="card">
         <h2>📝 Report an Issue</h2>
         <input id="name" placeholder="Your Name">
@@ -127,7 +126,6 @@
         <button onclick="submitComplaint()">🚀 Submit Report</button>
     </div>
     
-    <!-- ALL COMPLAINTS FROM THIS DEVICE -->
     <div class="card">
         <h2>📋 Your Complaints <span class="live-badge">PRIVATE</span></h2>
         <div id="allComplaintsList">
@@ -137,7 +135,6 @@
         <p style="font-size: 12px; margin-top: 12px; opacity: 0.7;">🔒 Only complaints submitted from THIS device appear here. Click any to view details.</p>
     </div>
     
-    <!-- Track Specific Complaint -->
     <div class="card">
         <h2>🔍 Track a Specific Complaint</h2>
         <p style="margin-bottom: 10px;">Enter the Case ID to see details (e.g., CFX-001)</p>
@@ -150,13 +147,14 @@
 </div>
 
 <script>
-const API_URL = "https://YOUR_RENDER_URL.onrender.com";
+// ========== YOUR ACTUAL RENDER URL ==========
+const API_URL = "https://cityfix-backend-bq0n.onrender.com";
+// ============================================
 
 let uploadedImage = "";
 let deviceToken = null;
 let updateInterval = null;
 
-// Get or create device token
 function getDeviceToken() {
     let token = localStorage.getItem("cityfix_device_token");
     if (!token) {
@@ -261,7 +259,6 @@ async function submitComplaint() {
         });
         const data = await res.json();
         
-        // Store private token for this complaint
         const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
         complaintTokens[data.id] = data.privateToken;
         localStorage.setItem("cityfix_complaint_tokens", JSON.stringify(complaintTokens));
@@ -271,7 +268,7 @@ async function submitComplaint() {
         loadMyComplaints();
         startLiveTracking();
     } catch(err) {
-        showPopup("❌ Error submitting. Try again.");
+        showPopup("❌ Error submitting. Make sure backend is running.");
         console.error(err);
     }
     
@@ -317,7 +314,7 @@ async function loadMyComplaints() {
         
     } catch(e) {
         console.error("Error:", e);
-        document.getElementById("allComplaintsList").innerHTML = "<p style='text-align:center; padding:20px;'>❌ Error loading complaints.</p>";
+        document.getElementById("allComplaintsList").innerHTML = "<p style='text-align:center; padding:20px;'>❌ Error loading complaints. Check if backend is running.</p>";
     }
 }
 
