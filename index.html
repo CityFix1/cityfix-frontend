@@ -123,15 +123,27 @@
 </div>
 
 <script>
-// ========== YOUR RENDER API URL ==========
-const API_URL = "https://YOUR-RENDER-URL.onrender.com";
-// ==========================================
+// ========== YOUR RENDER API URL (CORRECT ONE) ==========
+const API_URL = "https://cityfix-backend-bq0n.onrender.com";
+// ========================================================
 
 let uploadedImage = "";
 let lastComplaintId = null;
 let updateInterval = null;
 
-function toggleTheme() { document.body.classList.toggle("dark"); }
+function toggleTheme() { 
+    document.body.classList.toggle("dark");
+    const theme = document.body.classList.contains("dark") ? "dark" : "light";
+    localStorage.setItem("cityfix_theme", theme);
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem("cityfix_theme");
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark");
+    }
+}
+loadTheme();
 
 function showPopup(msg) {
     let popup = document.getElementById("popup");
@@ -212,11 +224,13 @@ async function submitComplaint() {
         const data = await res.json();
         showPopup(`✅ Submitted! Case ID: ${data.id}`);
         lastComplaintId = data.id;
+        localStorage.setItem("lastComplaintId", lastComplaintId);
         loadLastComplaint();
         startLiveTracking();
         clearForm();
     } catch(err) {
-        showPopup("❌ Error submitting. Make sure backend is running.");
+        showPopup("❌ Error submitting. Backend may be starting up. Try again in 10 seconds.");
+        console.error(err);
     }
     
     btn.disabled = false;
@@ -224,11 +238,15 @@ async function submitComplaint() {
 }
 
 async function loadLastComplaint() {
-    if (!lastComplaintId) return;
+    const savedId = localStorage.getItem("lastComplaintId");
+    const idToLoad = lastComplaintId || savedId;
+    if (!idToLoad) return;
     
     try {
-        const res = await fetch(`${API_URL}/api/complaint/${lastComplaintId}`);
+        const res = await fetch(`${API_URL}/api/complaint/${idToLoad}`);
+        if (!res.ok) throw new Error("Not found");
         const data = await res.json();
+        lastComplaintId = data.id;
         
         let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
         
@@ -236,7 +254,7 @@ async function loadLastComplaint() {
             <div style="background: var(--input); padding: 16px; border-radius: 20px;">
                 <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
                     <strong>📌 ${data.category}</strong>
-                    <span class="status-badge ${statusClass}">${data.status}</span>
+                    <span class="status-badge ${statusClass}" id="liveStatusBadge">${data.status}</span>
                 </div>
                 <p style="margin: 10px 0;">${data.description.substring(0, 100)}${data.description.length > 100 ? '...' : ''}</p>
                 <p><strong>📍 Location:</strong> ${data.location}</p>
@@ -244,22 +262,27 @@ async function loadLastComplaint() {
                 <p style="font-size: 12px; opacity: 0.7;">Last updated: ${new Date(data.updatedAt).toLocaleString()}</p>
             </div>
         `;
-    } catch(e) {}
+    } catch(e) {
+        console.error("Error loading last complaint:", e);
+    }
 }
 
 function startLiveTracking() {
     if (updateInterval) clearInterval(updateInterval);
     
     updateInterval = setInterval(async () => {
-        if (lastComplaintId) {
+        const savedId = localStorage.getItem("lastComplaintId");
+        const idToCheck = lastComplaintId || savedId;
+        if (idToCheck) {
             try {
-                const res = await fetch(`${API_URL}/api/complaint/${lastComplaintId}`);
-                const data = await res.json();
-                
-                const currentBadge = document.querySelector("#lastComplaintContent .status-badge");
-                if (currentBadge && currentBadge.innerText !== data.status) {
-                    showPopup(`🔔 Status updated to: ${data.status}`);
-                    loadLastComplaint();
+                const res = await fetch(`${API_URL}/api/complaint/${idToCheck}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const currentBadge = document.getElementById("liveStatusBadge");
+                    if (currentBadge && currentBadge.innerText !== data.status) {
+                        showPopup(`🔔 Status updated to: ${data.status}`);
+                        loadLastComplaint();
+                    }
                 }
             } catch(e) {}
         }
@@ -290,6 +313,14 @@ async function trackComplaint() {
     } catch(e) {
         document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found.</p>`;
     }
+}
+
+// Load last complaint on page load
+const savedId = localStorage.getItem("lastComplaintId");
+if (savedId) {
+    lastComplaintId = savedId;
+    loadLastComplaint();
+    startLiveTracking();
 }
 </script>
 </body>
