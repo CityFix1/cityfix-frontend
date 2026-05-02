@@ -48,7 +48,25 @@
     .gps-hint { font-size: 12px; color: var(--accent); margin-top: 8px; text-align: center; }
     .live-badge { background: #27ae60; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 10px; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-    .private-token { font-size: 11px; background: #e67e22; color: white; padding: 4px 8px; border-radius: 12px; font-family: monospace; margin-left: 8px; }
+    .complaint-list-item {
+        background: var(--input);
+        padding: 16px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+        border-left: 3px solid var(--accent);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .complaint-list-item:hover { transform: translateX(5px); opacity: 0.9; }
+    .refresh-complaints {
+        background: #2c3e50;
+        padding: 8px 16px;
+        border-radius: 40px;
+        font-size: 12px;
+        margin-top: 10px;
+        width: auto;
+        display: inline-block;
+    }
     @media (max-width: 700px) { .hero h1 { font-size: 36px; } .grid { grid-template-columns: 1fr; } .nav { flex-direction: column; } }
 </style>
 </head>
@@ -61,9 +79,10 @@
     <div class="hero">
         <h1>Report & Track<br>Civic Issues</h1>
         <p>Your voice builds better cities — transparent, accountable, fast.</p>
-        <p style="font-size: 12px; margin-top: 10px;">🔒 Your reports are private. Only YOU can track them.</p>
+        <p style="font-size: 12px; margin-top: 10px;">🔒 Your reports are private. Only YOU can see them from this device.</p>
     </div>
     
+    <!-- Report Form -->
     <div class="card">
         <h2>📝 Report an Issue</h2>
         <input id="name" placeholder="Your Name">
@@ -108,33 +127,46 @@
         <button onclick="submitComplaint()">🚀 Submit Report</button>
     </div>
     
+    <!-- ALL COMPLAINTS FROM THIS DEVICE -->
     <div class="card">
-        <h2>📌 Your Last Complaint <span class="live-badge">PRIVATE</span></h2>
-        <div id="lastComplaintContent"></div>
-        <p style="font-size: 12px; margin-top: 10px; opacity: 0.7;">🔒 Only you can see this complaint. Your private token is stored in this browser.</p>
+        <h2>📋 Your Complaints <span class="live-badge">PRIVATE</span></h2>
+        <div id="allComplaintsList">
+            <p style="text-align: center; padding: 20px;">Loading your complaints...</p>
+        </div>
+        <button class="refresh-complaints" onclick="loadMyComplaints()">⟳ Refresh</button>
+        <p style="font-size: 12px; margin-top: 12px; opacity: 0.7;">🔒 Only complaints submitted from THIS device appear here. Click any to view details.</p>
     </div>
     
+    <!-- Track Specific Complaint -->
     <div class="card">
-        <h2>🔍 Track Your Complaint</h2>
-        <p style="margin-bottom: 10px;">Enter the Case ID you received (e.g., CFX-001)</p>
+        <h2>🔍 Track a Specific Complaint</h2>
+        <p style="margin-bottom: 10px;">Enter the Case ID to see details (e.g., CFX-001)</p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <input id="trackId" placeholder="Enter Case ID" style="flex: 2;">
-            <button onclick="trackComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
+            <button onclick="trackSpecificComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
         </div>
         <div id="trackResult"></div>
-        <p style="font-size: 11px; margin-top: 10px; opacity: 0.6;">Only complaints submitted from THIS browser can be tracked.</p>
     </div>
 </div>
 
 <script>
-// ========== YOUR RENDER API URL ==========
-const API_URL = "https://cityfix-backend-bq0n.onrender.com";
-// ==========================================
+const API_URL = "https://YOUR_RENDER_URL.onrender.com";
 
 let uploadedImage = "";
-let lastComplaintId = null;
-let lastPrivateToken = null;
+let deviceToken = null;
 let updateInterval = null;
+
+// Get or create device token
+function getDeviceToken() {
+    let token = localStorage.getItem("cityfix_device_token");
+    if (!token) {
+        token = Math.random().toString(36).substring(2, 20) + Math.random().toString(36).substring(2, 20);
+        localStorage.setItem("cityfix_device_token", token);
+    }
+    return token;
+}
+
+deviceToken = getDeviceToken();
 
 function toggleTheme() { 
     document.body.classList.toggle("dark");
@@ -217,7 +249,8 @@ async function submitComplaint() {
         category: document.getElementById("category").value,
         description: document.getElementById("description").value,
         location: document.getElementById("location").value,
-        photo: uploadedImage
+        photo: uploadedImage,
+        deviceToken: deviceToken
     };
     
     try {
@@ -228,17 +261,15 @@ async function submitComplaint() {
         });
         const data = await res.json();
         
-        // Save both ID and private token
-        lastComplaintId = data.id;
-        lastPrivateToken = data.privateToken;
+        // Store private token for this complaint
+        const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
+        complaintTokens[data.id] = data.privateToken;
+        localStorage.setItem("cityfix_complaint_tokens", JSON.stringify(complaintTokens));
         
-        localStorage.setItem("lastComplaintId", lastComplaintId);
-        localStorage.setItem("lastPrivateToken", lastPrivateToken);
-        
-        showPopup(`✅ Submitted! Case ID: ${data.id} - Save this to track your complaint`);
-        loadLastComplaint();
-        startLiveTracking();
+        showPopup(`✅ Submitted! Case ID: ${data.id}`);
         clearForm();
+        loadMyComplaints();
+        startLiveTracking();
     } catch(err) {
         showPopup("❌ Error submitting. Try again.");
         console.error(err);
@@ -248,91 +279,99 @@ async function submitComplaint() {
     btn.innerText = "🚀 Submit Report";
 }
 
-async function loadLastComplaint() {
-    const savedId = localStorage.getItem("lastComplaintId");
-    const savedToken = localStorage.getItem("lastPrivateToken");
-    const idToLoad = lastComplaintId || savedId;
-    const tokenToUse = lastPrivateToken || savedToken;
-    
-    if (!idToLoad || !tokenToUse) return;
-    
+async function loadMyComplaints() {
     try {
-        const res = await fetch(`${API_URL}/api/complaint/${idToLoad}/${tokenToUse}`);
-        if (!res.ok) {
-            if (res.status === 403) {
-                document.getElementById("lastComplaintContent").innerHTML = `<p style="color:#e74c3c;">Access denied. This complaint belongs to another user.</p>`;
-            }
+        const res = await fetch(`${API_URL}/api/my-complaints`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceToken: deviceToken })
+        });
+        const complaints = await res.json();
+        
+        const container = document.getElementById("allComplaintsList");
+        
+        if (complaints.length === 0) {
+            container.innerHTML = "<p style='text-align: center; padding: 20px;'>No complaints yet. Submit your first complaint above!</p>";
             return;
         }
-        const data = await res.json();
         
-        let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+        complaints.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
-        document.getElementById("lastComplaintContent").innerHTML = `
-            <div style="background: var(--input); padding: 16px; border-radius: 20px;">
-                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    <strong>📌 ${data.category}</strong>
-                    <span class="status-badge ${statusClass}" id="liveStatusBadge">${data.status}</span>
+        container.innerHTML = complaints.map(c => {
+            let statusClass = c.status === "Pending" ? "status-Pending" : (c.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+            return `
+                <div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+                        <div>
+                            <strong>📌 ${c.category}</strong>
+                            <span style="font-size: 11px; opacity: 0.7;"> | ID: ${c.id}</span>
+                        </div>
+                        <span class="status-badge ${statusClass}">${c.status}</span>
+                    </div>
+                    <p style="margin-top: 8px; font-size: 14px;">${c.description.substring(0, 80)}${c.description.length > 80 ? '...' : ''}</p>
+                    <p style="margin-top: 6px; font-size: 12px; opacity: 0.7;">📍 ${c.location.substring(0, 60)}</p>
+                    <p style="margin-top: 4px; font-size: 11px; opacity: 0.5;">Submitted: ${new Date(c.createdAt).toLocaleString()}</p>
                 </div>
-                <p style="margin: 10px 0;">${data.description.substring(0, 100)}${data.description.length > 100 ? '...' : ''}</p>
-                <p><strong>📍 Location:</strong> ${data.location}</p>
-                <p><strong>🆔 Case ID:</strong> ${data.id}</p>
-                <p style="font-size: 12px; opacity: 0.7;">Last updated: ${new Date(data.updatedAt).toLocaleString()}</p>
-            </div>
-        `;
+            `;
+        }).join("");
+        
     } catch(e) {
-        console.error("Error loading last complaint:", e);
+        console.error("Error:", e);
+        document.getElementById("allComplaintsList").innerHTML = "<p style='text-align:center; padding:20px;'>❌ Error loading complaints.</p>";
     }
 }
 
-function startLiveTracking() {
-    if (updateInterval) clearInterval(updateInterval);
+async function viewComplaintDetails(complaintId) {
+    const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
+    const privateToken = complaintTokens[complaintId];
     
-    updateInterval = setInterval(async () => {
-        const savedId = localStorage.getItem("lastComplaintId");
-        const savedToken = localStorage.getItem("lastPrivateToken");
-        const idToCheck = lastComplaintId || savedId;
-        const tokenToUse = lastPrivateToken || savedToken;
-        
-        if (idToCheck && tokenToUse) {
-            try {
-                const res = await fetch(`${API_URL}/api/complaint/${idToCheck}/${tokenToUse}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    const currentBadge = document.getElementById("liveStatusBadge");
-                    if (currentBadge && currentBadge.innerText !== data.status) {
-                        showPopup(`🔔 Status updated to: ${data.status}`);
-                        loadLastComplaint();
-                    }
-                }
-            } catch(e) {}
-        }
-    }, 3000);
-}
-
-async function trackComplaint() {
-    const caseId = document.getElementById("trackId").value.trim();
-    if(!caseId) { showPopup("Enter a Case ID"); return; }
-    
-    // Get the private token for this complaint from localStorage
-    const savedToken = localStorage.getItem("lastPrivateToken");
-    const savedId = localStorage.getItem("lastComplaintId");
-    
-    if (!savedToken || savedId !== caseId) {
-        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ You can only track complaints you submitted from this browser.</p>`;
+    if (!privateToken) {
+        showPopup("❌ Cannot access complaint details.");
         return;
     }
     
     try {
-        const res = await fetch(`${API_URL}/api/complaint/${caseId}/${savedToken}`);
-        if (!res.ok) {
-            if (res.status === 403) {
-                document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Access denied. This complaint belongs to another user.</p>`;
-            } else if (res.status === 404) {
-                document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found.</p>`;
-            }
-            return;
-        }
+        const res = await fetch(`${API_URL}/api/complaint/${complaintId}/${privateToken}`);
+        if (!res.ok) throw new Error("Access denied");
+        const data = await res.json();
+        
+        let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
+        
+        document.getElementById("trackResult").innerHTML = `
+            <div class="track-result-card">
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    <h3>📌 ${data.category}</h3>
+                    <span class="status-badge ${statusClass}">${data.status}</span>
+                </div>
+                <p><strong>Description:</strong> ${data.description}</p>
+                <p><strong>📍 Location:</strong> ${data.location}</p>
+                <p><strong>Reported by:</strong> ${data.name}</p>
+                <p><strong>📅 Reported:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
+                <p><strong>🔄 Last Update:</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
+                ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
+            </div>
+        `;
+        document.getElementById("trackResult").scrollIntoView({ behavior: "smooth" });
+    } catch(e) {
+        showPopup("❌ Error loading complaint details");
+    }
+}
+
+async function trackSpecificComplaint() {
+    const caseId = document.getElementById("trackId").value.trim();
+    if(!caseId) { showPopup("Enter a Case ID"); return; }
+    
+    const complaintTokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
+    const privateToken = complaintTokens[caseId];
+    
+    if (!privateToken) {
+        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c; text-align:center; padding:20px;">❌ You can only track complaints you submitted from this device.</p>`;
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/api/complaint/${caseId}/${privateToken}`);
+        if (!res.ok) throw new Error("Not found");
         const data = await res.json();
         
         let statusClass = data.status === "Pending" ? "status-Pending" : (data.status === "In Progress" ? "status-In-Progress" : "status-Resolved");
@@ -348,19 +387,17 @@ async function trackComplaint() {
             ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
         </div>`;
     } catch(e) {
-        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Error loading complaint.</p>`;
+        document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">❌ Complaint not found.</p>`;
     }
 }
 
-// Load last complaint on page load
-const savedId = localStorage.getItem("lastComplaintId");
-const savedToken = localStorage.getItem("lastPrivateToken");
-if (savedId && savedToken) {
-    lastComplaintId = savedId;
-    lastPrivateToken = savedToken;
-    loadLastComplaint();
-    startLiveTracking();
+function startLiveTracking() {
+    if (updateInterval) clearInterval(updateInterval);
+    updateInterval = setInterval(() => { loadMyComplaints(); }, 5000);
 }
+
+loadMyComplaints();
+startLiveTracking();
 </script>
 </body>
 </html>
