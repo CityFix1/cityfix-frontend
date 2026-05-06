@@ -10,7 +10,6 @@
       --bg: #F5F5F0; --card: #FFFFFF; --text: #111111; --text-secondary: #5A6E66;
       --primary: #7B1E3A; --secondary: #1D4D3D; --accent: #C6A15B; --input: #F0F0F0;
       --border: #DDD9CC; --pending: #E67E22; --progress: #3498DB; --resolved: #27AE60;
-      --critical: #E74C3C; --high: #E67E22; --normal: #3498DB;
     }
     body.dark {
       --bg: #0A0F0E; --card: #111B18; --text: #EFF4F2; --text-secondary: #9DB7AD;
@@ -37,9 +36,7 @@
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .preview { width: 100%; margin-top: 14px; border-radius: 18px; display: none; }
     .gps-hint { font-size: 12px; color: var(--accent); margin-top: 8px; text-align: center; }
-    .priority-select { border-left: 3px solid; }
-    .priority-critical { border-left-color: var(--critical); background: var(--critical)10; }
-    .priority-high { border-left-color: var(--high); }
+    .required { color: #e74c3c; font-size: 12px; margin-top: 5px; }
     .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
     .status-Pending { background: var(--pending); color: white; }
     .status-In-Progress { background: var(--progress); color: white; }
@@ -51,10 +48,6 @@
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     .toast-notification { position: fixed; top: 80px; right: 20px; background: var(--card); color: var(--text); padding: 14px 22px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; z-index: 9999; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-right: 4px solid var(--resolved); max-width: 350px; animation: slideIn 0.3s ease; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .priority-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 600; margin-left: 8px; }
-    .priority-Critical { background: #E74C3C; color: white; }
-    .priority-High { background: #E67E22; color: white; }
-    .priority-Normal { background: #3498DB; color: white; }
     @media (max-width: 700px) { .hero h1 { font-size: 36px; } .grid { grid-template-columns: 1fr; } .nav { flex-direction: column; } .toast-notification { top: 70px; right: 10px; left: 10px; max-width: none; } }
   </style>
 </head>
@@ -76,65 +69,95 @@
   <!-- Report Form -->
   <div class="card">
     <h2 id="reportTitle">📝 Report an Issue</h2>
-    <input id="name" placeholder="Your Name (optional)">
+    <input id="name" placeholder="Your Name (required)" required>
+    <div class="required" id="nameRequiredMsg" style="display: none;">⚠️ Name is required</div>
     
-    <!-- Priority Selection (Emergency/Urgent at top) -->
-    <select id="priority" style="border-left: 4px solid #E74C3C; font-weight: bold;">
-      <option value="Normal" selected>✅ Normal Priority - عادي</option>
-      <option value="High">🔶 High Priority - عالية</option>
-      <option value="Critical">🚨 CRITICAL / EMERGENCY - طارئ</option>
-    </select>
-    
-    <!-- 52+ Categories Dropdown -->
+    <!-- Category Dropdown with "Select an issue type" as first option -->
     <select id="category">
-      <optgroup label="🏗️ INFRASTRUCTURE">
-        <option>Roads & Potholes</option><option>Drainage/Stormwater Blockage</option><option>Footpath Damage</option>
-        <option>Building Violations</option><option>Bridge/Culvert Damage</option><option>Speed Bump Damage</option>
-        <option>Road Markings Faded</option><option>Missing Road Signs</option>
+      <option id="defaultOption" value="" disabled selected>🔽 Select an issue type</option>
+      <optgroup id="emergencyGroup" label="🚨 EMERGENCY / CRITICAL">
+        <option value="Fire Hazard">🚨 Fire Hazard</option>
+        <option value="Building Collapse Risk">🏚️ Building Collapse Risk</option>
+        <option value="Flooding/Waterlogging">🌊 Flooding</option>
+        <option value="Landslide Risk">⛰️ Landslide Risk</option>
+        <option value="Emergency Response Delay">🚑 Emergency Response Delay</option>
+        <option value="Gas Leak">💨 Gas Leak</option>
+        <option value="Open Manholes (Safety Hazard)">⚠️ Open Manholes</option>
       </optgroup>
-      <optgroup label="💧 UTILITIES">
-        <option>Water Supply</option><option>Electricity</option><option>Sewage Blockage</option>
-        <option>Gas Leak</option><option>Street Light Outage</option>
+      <optgroup id="infraGroup" label="🏗️ INFRASTRUCTURE">
+        <option value="Roads & Potholes">🛣️ Roads & Potholes</option>
+        <option value="Drainage/Stormwater Blockage">💧 Drainage Blockage</option>
+        <option value="Footpath Damage">👣 Footpath Damage</option>
+        <option value="Building Violations">🏗️ Building Violations</option>
+        <option value="Bridge/Culvert Damage">🌉 Bridge Damage</option>
+        <option value="Speed Bump Damage">🛑 Speed Bump Damage</option>
+        <option value="Road Markings Faded">🎨 Road Markings Faded</option>
+        <option value="Missing Road Signs">🚸 Missing Road Signs</option>
       </optgroup>
-      <optgroup label="🚦 TRANSPORT & SAFETY">
-        <option>Safety & Lighting</option><option>Traffic Signal Malfunction</option><option>Open Manholes (Safety Hazard)</option>
-        <option>Stray Animals</option><option>Missing Manhole Cover</option><option>Dangerous Intersection</option>
-        <option>Parking Violations</option><option>Abandoned Vehicles</option>
+      <optgroup id="utilsGroup" label="💧 UTILITIES">
+        <option value="Water Supply">🚰 Water Supply</option>
+        <option value="Electricity">⚡ Electricity</option>
+        <option value="Sewage Blockage">🚽 Sewage Blockage</option>
+        <option value="Street Light Outage">💡 Street Light Outage</option>
       </optgroup>
-      <optgroup label="🧹 CLEANLINESS">
-        <option>Cleanliness & Waste</option><option>Public Toilet Maintenance</option><option>Illegal Dumping</option>
-        <option>Dead Animal Removal</option><option>Overflowing Bins</option><option>Street Sweeping Required</option>
+      <optgroup id="transportGroup" label="🚦 TRANSPORT & SAFETY">
+        <option value="Safety & Lighting">🔦 Safety & Lighting</option>
+        <option value="Traffic Signal Malfunction">🚥 Traffic Signal Malfunction</option>
+        <option value="Stray Animals">🐕 Stray Animals</option>
+        <option value="Missing Manhole Cover">🔘 Missing Manhole Cover</option>
+        <option value="Dangerous Intersection">⚠️ Dangerous Intersection</option>
+        <option value="Parking Violations">🅿️ Parking Violations</option>
+        <option value="Abandoned Vehicles">🚗 Abandoned Vehicles</option>
       </optgroup>
-      <optgroup label="🌳 ENVIRONMENT">
-        <option>Tree Fall/Dangerous Trees</option><option>Air Pollution</option><option>Noise Pollution</option>
-        <option>Water Pollution</option><option>Mosquito Infestation</option><option>Bad Odor/Smell</option>
-        <option>Dust Accumulation</option>
+      <optgroup id="cleanGroup" label="🧹 CLEANLINESS">
+        <option value="Cleanliness & Waste">🗑️ Cleanliness & Waste</option>
+        <option value="Public Toilet Maintenance">🚻 Public Toilet Maintenance</option>
+        <option value="Illegal Dumping">🚛 Illegal Dumping</option>
+        <option value="Dead Animal Removal">⚰️ Dead Animal Removal</option>
+        <option value="Overflowing Bins">🗑️ Overflowing Bins</option>
+        <option value="Street Sweeping Required">🧹 Street Sweeping</option>
       </optgroup>
-      <optgroup label="🏥 PUBLIC HEALTH">
-        <option>Abandoned Building</option><option>Pest Control Required</option><option>Food Safety Violation</option>
-        <option>Clinic/Hospital Issue</option><option>Pharmacy Complaint</option><option>Vaccination Center Issue</option>
+      <optgroup id="envGroup" label="🌳 ENVIRONMENT">
+        <option value="Tree Fall/Dangerous Trees">🌲 Tree Fall</option>
+        <option value="Air Pollution">🌫️ Air Pollution</option>
+        <option value="Noise Pollution">🔊 Noise Pollution</option>
+        <option value="Water Pollution">💧 Water Pollution</option>
+        <option value="Mosquito Infestation">🦟 Mosquito Infestation</option>
+        <option value="Bad Odor/Smell">👃 Bad Odor</option>
+        <option value="Dust Accumulation">🏜️ Dust Accumulation</option>
       </optgroup>
-      <optgroup label="🏫 PUBLIC FACILITIES">
-        <option>School Zone Safety</option><option>Public Park Maintenance</option><option>Playground Equipment Damage</option>
-        <option>Public Bench Damage</option><option>Fountain Not Working</option>
+      <optgroup id="healthGroup" label="🏥 PUBLIC HEALTH">
+        <option value="Abandoned Building">🏚️ Abandoned Building</option>
+        <option value="Pest Control Required">🐀 Pest Control</option>
+        <option value="Food Safety Violation">🍔 Food Safety</option>
+        <option value="Clinic/Hospital Issue">🏥 Clinic Issue</option>
+        <option value="Pharmacy Complaint">💊 Pharmacy Complaint</option>
+        <option value="Vaccination Center Issue">💉 Vaccination Issue</option>
       </optgroup>
-      <optgroup label="⚠️ EMERGENCY & SAFETY">
-        <option>Fire Hazard</option><option>Building Collapse Risk</option><option>Flooding/Waterlogging</option>
-        <option>Landslide Risk</option><option>Emergency Response Delay</option>
+      <optgroup id="facilitiesGroup" label="🏫 PUBLIC FACILITIES">
+        <option value="School Zone Safety">🏫 School Zone Safety</option>
+        <option value="Public Park Maintenance">🌳 Park Maintenance</option>
+        <option value="Playground Equipment Damage">🎠 Playground Damage</option>
+        <option value="Public Bench Damage">🪑 Bench Damage</option>
+        <option value="Fountain Not Working">⛲ Fountain Not Working</option>
       </optgroup>
-      <optgroup label="📡 DIGITAL & COMMUNICATION">
-        <option>Public WiFi Not Working</option><option>Digital Signage Issue</option><option>Government Website Down</option>
+      <optgroup id="digitalGroup" label="📡 DIGITAL">
+        <option value="Public WiFi Not Working">📶 WiFi Issue</option>
+        <option value="Digital Signage Issue">📺 Digital Signage</option>
+        <option value="Government Website Down">💻 Website Down</option>
       </optgroup>
-      <optgroup label="📋 OTHER"><option>Others</option></optgroup>
+      <optgroup id="otherGroup" label="📋 OTHER">
+        <option value="Others">📋 Others</option>
+      </optgroup>
     </select>
     
     <textarea id="description" placeholder="Describe the issue in detail..."></textarea>
     <input id="location" placeholder="📍 Location (street / area)">
     <div class="grid">
-      <button onclick="useGPS()">📍 Detect Location</button>
-      <button onclick="clearForm()">🗑️ Clear</button>
+      <button id="gpsBtn" onclick="useGPS()">📍 Detect Location</button>
+      <button id="clearBtn" onclick="clearForm()">🗑️ Clear</button>
     </div>
-    <div class="gps-hint">💡 Click "Detect Location" to auto-fill your address</div>
+    <div class="gps-hint" id="gpsHint">💡 Click "Detect Location" to auto-fill your address</div>
     <input type="file" id="photo" accept="image/*">
     <img id="preview" class="preview">
     <button id="submitBtn" onclick="submitComplaint()">🚀 Submit Report</button>
@@ -144,7 +167,7 @@
   <div class="card">
     <h2 id="complaintsTitle">📋 Your Complaints <span class="live-badge">LIVE UPDATES</span></h2>
     <div id="allComplaintsList"><p style="text-align:center; padding:20px;">Loading your reports...</p></div>
-    <button onclick="loadMyComplaints()" style="background: var(--input); color: var(--text); margin-top: 12px;">⟳ Refresh</button>
+    <button id="refreshComplaintsBtn" onclick="loadMyComplaints()" style="background: var(--input); color: var(--text); margin-top: 12px;">⟳ Refresh</button>
     <p id="privacyNote" style="font-size: 11px; margin-top: 12px; opacity: 0.7;">🔒 Only complaints from this device appear here. Click any to view details.</p>
   </div>
 
@@ -154,7 +177,7 @@
     <p id="trackSub" style="margin-bottom: 10px;">Enter Case ID (e.g., CFX-001)</p>
     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
       <input id="trackId" placeholder="Case ID" style="flex: 2;">
-      <button onclick="trackSpecificComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
+      <button id="trackBtn" onclick="trackSpecificComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
     </div>
     <div id="trackResult"></div>
   </div>
@@ -165,44 +188,147 @@
   let uploadedImage = "", deviceToken = null, updateInterval = null, previousStatusMap = {};
   let currentLang = localStorage.getItem("cityfix_lang") || "en";
 
+  // Category mapping for language switching
+  const categoryMap = {
+    "Select an issue type": { en: "🔽 Select an issue type", ar: "🔽 اختر نوع المشكلة" },
+    "Fire Hazard": { en: "🚨 Fire Hazard", ar: "🚨 خطر حريق" },
+    "Building Collapse Risk": { en: "🏚️ Building Collapse Risk", ar: "🏚️ خطر انهيار مبنى" },
+    "Flooding/Waterlogging": { en: "🌊 Flooding", ar: "🌊 فيضانات" },
+    "Landslide Risk": { en: "⛰️ Landslide Risk", ar: "⛰️ خطر انهيار أرضي" },
+    "Emergency Response Delay": { en: "🚑 Emergency Response Delay", ar: "🚑 تأخر الاستجابة للطوارئ" },
+    "Gas Leak": { en: "💨 Gas Leak", ar: "💨 تسرب غاز" },
+    "Open Manholes (Safety Hazard)": { en: "⚠️ Open Manholes", ar: "⚠️ فتحات صرف مكشوفة" },
+    "Roads & Potholes": { en: "🛣️ Roads & Potholes", ar: "🛣️ الطرق والحفر" },
+    "Drainage/Stormwater Blockage": { en: "💧 Drainage Blockage", ar: "💧 انسداد الصرف" },
+    "Footpath Damage": { en: "👣 Footpath Damage", ar: "👣 تلف الأرصفة" },
+    "Building Violations": { en: "🏗️ Building Violations", ar: "🏗️ مخالفات البناء" },
+    "Bridge/Culvert Damage": { en: "🌉 Bridge Damage", ar: "🌉 تلف الجسور" },
+    "Speed Bump Damage": { en: "🛑 Speed Bump Damage", ar: "🛑 تلف مطبات السرعة" },
+    "Road Markings Faded": { en: "🎨 Road Markings Faded", ar: "🎨 تآكل علامات الطرق" },
+    "Missing Road Signs": { en: "🚸 Missing Road Signs", ar: "🚸 غياب اللوحات الإرشادية" },
+    "Water Supply": { en: "🚰 Water Supply", ar: "🚰 إمدادات المياه" },
+    "Electricity": { en: "⚡ Electricity", ar: "⚡ الكهرباء" },
+    "Sewage Blockage": { en: "🚽 Sewage Blockage", ar: "🚽 انسداد المجاري" },
+    "Street Light Outage": { en: "💡 Street Light Outage", ar: "💡 انطفاء أعمدة الإنارة" },
+    "Safety & Lighting": { en: "🔦 Safety & Lighting", ar: "🔦 السلامة والإضاءة" },
+    "Traffic Signal Malfunction": { en: "🚥 Traffic Signal Malfunction", ar: "🚥 عطل إشارة المرور" },
+    "Stray Animals": { en: "🐕 Stray Animals", ar: "🐕 حيوانات ضالة" },
+    "Missing Manhole Cover": { en: "🔘 Missing Manhole Cover", ar: "🔘 غياب غطاء فتحة الصرف" },
+    "Dangerous Intersection": { en: "⚠️ Dangerous Intersection", ar: "⚠️ تقاطع خطير" },
+    "Parking Violations": { en: "🅿️ Parking Violations", ar: "🅿️ مخالفات وقوف" },
+    "Abandoned Vehicles": { en: "🚗 Abandoned Vehicles", ar: "🚗 مركبات مهجورة" },
+    "Cleanliness & Waste": { en: "🗑️ Cleanliness & Waste", ar: "🗑️ النظافة والنفايات" },
+    "Public Toilet Maintenance": { en: "🚻 Public Toilet Maintenance", ar: "🚻 صيانة دورات المياه" },
+    "Illegal Dumping": { en: "🚛 Illegal Dumping", ar: "🚛 رمي النفايات غير القانوني" },
+    "Dead Animal Removal": { en: "⚰️ Dead Animal Removal", ar: "⚰️ إزالة الحيوانات النافقة" },
+    "Overflowing Bins": { en: "🗑️ Overflowing Bins", ar: "🗑️ حاويات ممتلئة" },
+    "Street Sweeping Required": { en: "🧹 Street Sweeping", ar: "🧹 تنظيف الشوارع" },
+    "Tree Fall/Dangerous Trees": { en: "🌲 Tree Fall", ar: "🌲 سقوط الأشجار" },
+    "Air Pollution": { en: "🌫️ Air Pollution", ar: "🌫️ تلوث الهواء" },
+    "Noise Pollution": { en: "🔊 Noise Pollution", ar: "🔊 تلوث ضوضائي" },
+    "Water Pollution": { en: "💧 Water Pollution", ar: "💧 تلوث المياه" },
+    "Mosquito Infestation": { en: "🦟 Mosquito Infestation", ar: "🦟 انتشار البعوض" },
+    "Bad Odor/Smell": { en: "👃 Bad Odor", ar: "👃 روائح كريهة" },
+    "Dust Accumulation": { en: "🏜️ Dust Accumulation", ar: "🏜️ تراكم الغبار" },
+    "Abandoned Building": { en: "🏚️ Abandoned Building", ar: "🏚️ مبنى مهجور" },
+    "Pest Control Required": { en: "🐀 Pest Control", ar: "🐀 مكافحة الآفات" },
+    "Food Safety Violation": { en: "🍔 Food Safety", ar: "🍔 سلامة الغذاء" },
+    "Clinic/Hospital Issue": { en: "🏥 Clinic Issue", ar: "🏥 مشكلة عيادة" },
+    "Pharmacy Complaint": { en: "💊 Pharmacy Complaint", ar: "💊 شكوى صيدلية" },
+    "Vaccination Center Issue": { en: "💉 Vaccination Issue", ar: "💉 مشكلة مركز تطعيم" },
+    "School Zone Safety": { en: "🏫 School Zone Safety", ar: "🏫 سلامة المدارس" },
+    "Public Park Maintenance": { en: "🌳 Park Maintenance", ar: "🌳 صيانة الحدائق" },
+    "Playground Equipment Damage": { en: "🎠 Playground Damage", ar: "🎠 تلف معدات الملاعب" },
+    "Public Bench Damage": { en: "🪑 Bench Damage", ar: "🪑 تلف المقاعد" },
+    "Fountain Not Working": { en: "⛲ Fountain Not Working", ar: "⛲ تعطل النافورة" },
+    "Public WiFi Not Working": { en: "📶 WiFi Issue", ar: "📶 واي فاي لا يعمل" },
+    "Digital Signage Issue": { en: "📺 Digital Signage", ar: "📺 عطل اللوحات الرقمية" },
+    "Government Website Down": { en: "💻 Website Down", ar: "💻 تعطل موقع حكومي" },
+    "Others": { en: "📋 Others", ar: "📋 أخرى" }
+  };
+
   function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem("cityfix_lang", lang);
     document.documentElement.lang = lang === "en" ? "en" : "ar";
     document.body.dir = lang === "en" ? "ltr" : "rtl";
-    document.getElementById("langToggleBtn").innerText = lang === "en" ? "🇦🇪 العربية" : "🇬🇧 English";
-    const t = {
-      en: { portalLabel: "citizen portal", heroTitle: "Report & Track<br>Civic Issues", heroSub: "Your voice builds better cities — transparent, accountable, fast.", reportTitle: "📝 Report an Issue", complaintsTitle: "📋 Your Complaints", trackTitle: "🔍 Track a Specific Complaint", trackSub: "Enter Case ID (e.g., CFX-001)", privacyNote: "🔒 Only complaints from this device appear here. Click any to view details.", gpsHint: "💡 Click \"Detect Location\" to auto-fill your address", submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error.", noReports: "📭 No reports yet.", loading: "Loading...", unableLoad: "❌ Unable to load complaints.", clickHint: "💡 Click any complaint to view full details" },
-      ar: { portalLabel: "بوابة المواطن", heroTitle: "الإبلاغ عن المشكلات<br>وتتبعها", heroSub: "صوتك يبني مدناً أفضل — شفافية، مساءلة، وسرعة", reportTitle: "📝 الإبلاغ عن مشكلة", complaintsTitle: "📋 بلاغاتك", trackTitle: "🔍 تتبع بلاغ محدد", trackSub: "أدخل معرف البلاغ (مثال: CFX-001)", privacyNote: "🔒 فقط البلاغات المرسلة من هذا الجهاز تظهر هنا. اضغط على أي بلاغ للاطلاع على التفاصيل.", gpsHint: "💡 اضغط \"تحديد الموقع\" لملء عنوانك تلقائياً", submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال.", noReports: "📭 لا توجد بلاغات بعد.", loading: "جاري التحميل...", unableLoad: "❌ تعذر تحميل البلاغات.", clickHint: "💡 اضغط على أي بلاغ لعرض التفاصيل" }
+    const langBtn = document.getElementById("langToggleBtn");
+    if (langBtn) langBtn.innerText = lang === "en" ? "🇦🇪 العربية" : "🇬🇧 English";
+    
+    const optgroupLabels = {
+      emergencyGroup: lang === "en" ? "🚨 EMERGENCY / CRITICAL" : "🚨 طوارئ / حرجة",
+      infraGroup: lang === "en" ? "🏗️ INFRASTRUCTURE" : "🏗️ البنية التحتية",
+      utilsGroup: lang === "en" ? "💧 UTILITIES" : "💧 المرافق",
+      transportGroup: lang === "en" ? "🚦 TRANSPORT & SAFETY" : "🚦 النقل والسلامة",
+      cleanGroup: lang === "en" ? "🧹 CLEANLINESS" : "🧹 النظافة",
+      envGroup: lang === "en" ? "🌳 ENVIRONMENT" : "🌳 البيئة",
+      healthGroup: lang === "en" ? "🏥 PUBLIC HEALTH" : "🏥 الصحة العامة",
+      facilitiesGroup: lang === "en" ? "🏫 PUBLIC FACILITIES" : "🏫 المرافق العامة",
+      digitalGroup: lang === "en" ? "📡 DIGITAL" : "📡 الرقمية",
+      otherGroup: lang === "en" ? "📋 OTHER" : "📋 أخرى"
     };
-    const tr = t[lang];
-    document.getElementById("portalLabel").innerText = tr.portalLabel;
-    document.getElementById("heroTitle").innerHTML = tr.heroTitle;
-    document.getElementById("heroSub").innerText = tr.heroSub;
-    document.getElementById("reportTitle").innerHTML = tr.reportTitle;
-    document.getElementById("complaintsTitle").innerHTML = tr.complaintsTitle + ' <span class="live-badge">LIVE UPDATES</span>';
-    document.getElementById("trackTitle").innerHTML = tr.trackTitle;
-    document.getElementById("trackSub").innerText = tr.trackSub;
-    document.getElementById("privacyNote").innerText = tr.privacyNote;
-    document.getElementById("gpsHint").innerText = tr.gpsHint;
-    document.getElementById("name").placeholder = lang === "en" ? "Your Name (optional)" : "اسمك (اختياري)";
-    document.getElementById("description").placeholder = lang === "en" ? "Describe the issue in detail..." : "صف المشكلة بالتفصيل...";
-    document.getElementById("location").placeholder = lang === "en" ? "📍 Location (street / area)" : "📍 الموقع (الشارع / المنطقة)";
-    document.getElementById("trackId").placeholder = lang === "en" ? "Case ID" : "معرف البلاغ";
-    const priorityMap = { "Normal Priority - عادي": { en: "Normal", ar: "عادي" }, "High Priority - عالية": { en: "High", ar: "عالية" }, "CRITICAL / EMERGENCY - طارئ": { en: "Critical", ar: "طارئ" } };
-    const prioritySelect = document.getElementById("priority");
-    for (let i = 0; i < prioritySelect.options.length; i++) {
-      const opt = prioritySelect.options[i];
-      const val = opt.value;
-      opt.innerText = lang === "en" ? (val === "Normal" ? "✅ Normal Priority" : val === "High" ? "🔶 High Priority" : "🚨 CRITICAL / EMERGENCY") : (val === "Normal" ? "✅ عادي" : val === "High" ? "🔶 عالية" : "🚨 طارئ");
+    for (const [id, label] of Object.entries(optgroupLabels)) {
+      const el = document.getElementById(id);
+      if (el) el.label = label;
     }
+    
+    const options = document.querySelectorAll("#category option");
+    options.forEach(opt => {
+      const val = opt.value;
+      if (categoryMap[val]) {
+        opt.innerText = categoryMap[val][lang];
+      }
+    });
+    
+    const text = {
+      en: {
+        portalLabel: "citizen portal", heroTitle: "Report & Track<br>Civic Issues", heroSub: "Your voice builds better cities — transparent, accountable, fast.",
+        reportTitle: "📝 Report an Issue", namePlace: "Your Name (required)", descPlace: "Describe the issue in detail...", locPlace: "📍 Location (street / area)",
+        gpsBtn: "📍 Detect Location", clearBtn: "🗑️ Clear", gpsHint: "💡 Click \"Detect Location\" to auto-fill your address", submitBtn: "🚀 Submit Report",
+        complaintsTitle: "📋 Your Complaints", refreshBtn: "⟳ Refresh", privacyNote: "🔒 Only complaints from this device appear here. Click any to view details.",
+        trackTitle: "🔍 Track a Specific Complaint", trackSub: "Enter Case ID (e.g., CFX-001)", trackPlace: "Case ID", trackBtn: "Track →",
+        noReports: "📭 No reports yet. Submit your first complaint above.", loading: "Loading your reports...", unableLoad: "❌ Unable to load complaints.",
+        clickHint: "💡 Click any complaint to view full details", submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error.",
+        gpsSuccess: "📍 Location detected!", gpsAllow: "Allow location access", statusUpdate: "🔔 Status update for complaint", nameRequired: "⚠️ Name is required"
+      },
+      ar: {
+        portalLabel: "بوابة المواطن", heroTitle: "الإبلاغ عن المشكلات<br>وتتبعها", heroSub: "صوتك يبني مدناً أفضل — شفافية، مساءلة، وسرعة",
+        reportTitle: "📝 الإبلاغ عن مشكلة", namePlace: "اسمك (مطلوب)", descPlace: "صف المشكلة بالتفصيل...", locPlace: "📍 الموقع (الشارع / المنطقة)",
+        gpsBtn: "📍 تحديد الموقع", clearBtn: "🗑️ مسح", gpsHint: "💡 اضغط \"تحديد الموقع\" لملء عنوانك تلقائياً", submitBtn: "🚀 إرسال البلاغ",
+        complaintsTitle: "📋 بلاغاتك", refreshBtn: "⟳ تحديث", privacyNote: "🔒 فقط البلاغات المرسلة من هذا الجهاز تظهر هنا. اضغط على أي بلاغ لعرض التفاصيل.",
+        trackTitle: "🔍 تتبع بلاغ محدد", trackSub: "أدخل معرف البلاغ (مثال: CFX-001)", trackPlace: "معرف البلاغ", trackBtn: "تتبع ←",
+        noReports: "📭 لا توجد بلاغات بعد. أرسل بلاغك الأول أعلاه.", loading: "جاري تحميل بلاغاتك...", unableLoad: "❌ تعذر تحميل البلاغات.",
+        clickHint: "💡 اضغط على أي بلاغ لعرض التفاصيل", submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال.",
+        gpsSuccess: "📍 تم تحديد الموقع!", gpsAllow: "اسمح بالوصول للموقع", statusUpdate: "🔔 تحديث حالة البلاغ", nameRequired: "⚠️ الاسم مطلوب"
+      }
+    };
+    const t = text[lang];
+    document.getElementById("portalLabel").innerText = t.portalLabel;
+    document.getElementById("heroTitle").innerHTML = t.heroTitle;
+    document.getElementById("heroSub").innerText = t.heroSub;
+    document.getElementById("reportTitle").innerHTML = t.reportTitle;
+    document.getElementById("name").placeholder = t.namePlace;
+    document.getElementById("description").placeholder = t.descPlace;
+    document.getElementById("location").placeholder = t.locPlace;
+    document.getElementById("gpsBtn").innerText = t.gpsBtn;
+    document.getElementById("clearBtn").innerText = t.clearBtn;
+    document.getElementById("gpsHint").innerText = t.gpsHint;
+    document.getElementById("submitBtn").innerText = t.submitBtn;
+    document.getElementById("complaintsTitle").innerHTML = t.complaintsTitle + ' <span class="live-badge">LIVE UPDATES</span>';
+    document.getElementById("refreshComplaintsBtn").innerText = t.refreshBtn;
+    document.getElementById("privacyNote").innerText = t.privacyNote;
+    document.getElementById("trackTitle").innerHTML = t.trackTitle;
+    document.getElementById("trackSub").innerText = t.trackSub;
+    document.getElementById("trackId").placeholder = t.trackPlace;
+    document.getElementById("trackBtn").innerText = t.trackBtn;
   }
+
   function toggleLanguage() { setLanguage(currentLang === "en" ? "ar" : "en"); loadMyComplaints(); }
   function toggleTheme() { document.body.classList.toggle("dark"); localStorage.setItem("cityfix_theme", document.body.classList.contains("dark") ? "dark" : "light"); }
   function loadTheme() { if (localStorage.getItem("cityfix_theme") === "dark") document.body.classList.add("dark"); }
   loadTheme(); setLanguage(currentLang);
 
-  function showToast(msg, type = "info") { const toast = document.getElementById("toastNotification"); toast.style.borderRightColor = type === "error" ? "#E74C3C" : "var(--resolved)"; toast.innerHTML = msg; toast.style.display = "block"; setTimeout(() => toast.style.display = "none", 4500); }
+  function showToast(msg, type = "info") { const toast = document.getElementById("toastNotification"); if (toast) { toast.style.borderRightColor = type === "error" ? "#E74C3C" : "var(--resolved)"; toast.innerHTML = msg; toast.style.display = "block"; setTimeout(() => toast.style.display = "none", 4500); } }
   function getDeviceToken() { let token = localStorage.getItem("cityfix_device_token"); if (!token) { token = Math.random().toString(36).substring(2, 20) + Math.random().toString(36).substring(2, 20); localStorage.setItem("cityfix_device_token", token); } return token; }
   deviceToken = getDeviceToken();
 
@@ -215,27 +341,43 @@
 
   async function useGPS() {
     if (!navigator.geolocation) return showToast("GPS not supported", "error");
+    const t = currentLang === "en" ? { success: "📍 Location detected!", allow: "Allow location access" } : { success: "📍 تم تحديد الموقع!", allow: "اسمح بالوصول للموقع" };
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const lat = pos.coords.latitude, lon = pos.coords.longitude;
-      try { const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`); const data = await res.json(); document.getElementById("location").value = data.display_name || `${lat}, ${lon}`; showToast(currentLang === "en" ? "📍 Location detected!" : "📍 تم تحديد الموقع!", "info"); } catch(e) { showToast(currentLang === "en" ? "Location detected" : "تم تحديد الموقع", "info"); }
-    }, () => showToast(currentLang === "en" ? "Allow location access" : "اسمح بالوصول للموقع", "error"));
+      try { const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`); const data = await res.json(); document.getElementById("location").value = data.display_name || `${lat}, ${lon}`; showToast(t.success, "info"); } catch(e) { showToast(t.success, "info"); }
+    }, () => showToast(t.allow, "error"));
   }
-  function clearForm() { document.getElementById("name").value = ""; document.getElementById("description").value = ""; document.getElementById("location").value = ""; document.getElementById("photo").value = ""; document.getElementById("preview").style.display = "none"; uploadedImage = ""; }
+  function clearForm() { document.getElementById("name").value = ""; document.getElementById("description").value = ""; document.getElementById("location").value = ""; document.getElementById("photo").value = ""; document.getElementById("preview").style.display = "none"; uploadedImage = ""; document.getElementById("nameRequiredMsg").style.display = "none"; }
 
   async function submitComplaint() {
     const btn = document.getElementById("submitBtn");
-    btn.disabled = true; btn.innerText = currentLang === "en" ? "Submitting..." : "جاري الإرسال...";
-    const selectedPriority = document.getElementById("priority").value;
-    const complaint = { name: document.getElementById("name").value || "Anonymous", category: document.getElementById("category").value, description: document.getElementById("description").value, location: document.getElementById("location").value, photo: uploadedImage, deviceToken: deviceToken, priority: selectedPriority };
+    const nameInput = document.getElementById("name").value.trim();
+    if (!nameInput) {
+      document.getElementById("nameRequiredMsg").style.display = "block";
+      showToast(currentLang === "en" ? "⚠️ Please enter your name" : "⚠️ الرجاء إدخال اسمك", "error");
+      return;
+    }
+    document.getElementById("nameRequiredMsg").style.display = "none";
+    
+    const categorySelect = document.getElementById("category");
+    if (!categorySelect.value) {
+      showToast(currentLang === "en" ? "⚠️ Please select an issue type" : "⚠️ الرجاء اختيار نوع المشكلة", "error");
+      return;
+    }
+    
+    if (!btn) return;
+    const t = currentLang === "en" ? { submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error." } : { submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال." };
+    btn.disabled = true; btn.innerText = t.submitting;
+    const complaint = { name: nameInput, category: categorySelect.value, description: document.getElementById("description").value, location: document.getElementById("location").value, photo: uploadedImage, deviceToken: deviceToken, priority: "Normal" };
     try {
       const res = await fetch(`${API_URL}/api/complaints`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(complaint) });
       const data = await res.json();
       const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
       tokens[data.id] = data.privateToken;
       localStorage.setItem("cityfix_complaint_tokens", JSON.stringify(tokens));
-      showToast(`${currentLang === "en" ? "✅ Submitted! Case ID: " : "✅ تم الإرسال! معرف البلاغ: "}${data.id}`, "info");
+      showToast(`${t.submitted}${data.id}`, "info");
       clearForm(); loadMyComplaints(); startLiveTracking();
-    } catch(err) { showToast(currentLang === "en" ? "❌ Submission error." : "❌ خطأ في الإرسال.", "error"); }
+    } catch(err) { showToast(t.error, "error"); }
     btn.disabled = false; btn.innerText = currentLang === "en" ? "🚀 Submit Report" : "🚀 إرسال البلاغ";
   }
 
@@ -244,17 +386,17 @@
       const res = await fetch(`${API_URL}/api/my-complaints`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceToken }) });
       const complaints = await res.json();
       const container = document.getElementById("allComplaintsList");
-      if (complaints.length === 0) { container.innerHTML = `<p style='text-align:center; padding:20px;'>${currentLang === "en" ? "📭 No reports yet." : "📭 لا توجد بلاغات بعد."}</p>`; return; }
+      if (!container) return;
+      const t = currentLang === "en" ? { noReports: "📭 No reports yet. Submit your first complaint above.", clickHint: "💡 Click any complaint to view full details" } : { noReports: "📭 لا توجد بلاغات بعد. أرسل بلاغك الأول أعلاه.", clickHint: "💡 اضغط على أي بلاغ لعرض التفاصيل" };
+      if (complaints.length === 0) { container.innerHTML = `<p style='text-align:center; padding:20px;'>${t.noReports}</p>`; return; }
       complaints.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
       container.innerHTML = complaints.map(c => {
         const statusClass = `status-${c.status.replace(/ /g, '-')}`;
         const statusText = c.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (c.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
-        const priorityClass = c.priority === "Critical" ? "priority-Critical" : (c.priority === "High" ? "priority-High" : "priority-Normal");
-        const priorityText = c.priority === "Critical" ? (currentLang === "en" ? "CRITICAL" : "طارئ") : (c.priority === "High" ? (currentLang === "en" ? "HIGH" : "عالية") : (currentLang === "en" ? "Normal" : "عادي"));
-        return `<div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')"><div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;"><div><strong>📌 ${escapeHtml(c.category)}</strong> <span style="font-size: 11px;"> | ID: ${c.id}</span><span class="priority-badge ${priorityClass}">${priorityText}</span></div><span class="status-badge ${statusClass}" data-id="${c.id}">${statusText}</span></div><p style="margin-top: 8px;">${escapeHtml(c.description.substring(0, 80))}${c.description.length > 80 ? '…' : ''}</p><p style="margin-top: 6px; font-size: 12px;">📍 ${escapeHtml(c.location.substring(0, 60))}</p><p style="margin-top: 4px; font-size: 11px; opacity:0.6;">📅 ${new Date(c.createdAt).toLocaleDateString(currentLang === "en" ? "en-US" : "ar-EG")}</p></div>`;
+        return `<div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')"><div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;"><div><strong>📌 ${escapeHtml(c.category)}</strong> <span style="font-size: 11px;"> | ID: ${c.id}</span></div><span class="status-badge ${statusClass}" data-id="${c.id}">${statusText}</span></div><p style="margin-top: 8px;">${escapeHtml(c.description.substring(0, 80))}${c.description.length > 80 ? '…' : ''}</p><p style="margin-top: 6px; font-size: 12px;">📍 ${escapeHtml(c.location.substring(0, 60))}</p><p style="margin-top: 4px; font-size: 11px; opacity:0.6;">📅 ${new Date(c.createdAt).toLocaleDateString(currentLang === "en" ? "en-US" : "ar-EG")}</p></div>`;
       }).join("");
-      container.innerHTML += `<p style="font-size: 11px; margin-top: 8px; text-align:center; opacity:0.6;">${currentLang === "en" ? "💡 Click any complaint to view full details" : "💡 اضغط على أي بلاغ لعرض التفاصيل"}</p>`;
-    } catch(e) { document.getElementById("allComplaintsList").innerHTML = `<p style='text-align:center; padding:20px;'>${currentLang === "en" ? "❌ Unable to load complaints." : "❌ تعذر تحميل البلاغات."}</p>`; }
+      container.innerHTML += `<p style="font-size: 11px; margin-top: 8px; text-align:center; opacity:0.6;">${t.clickHint}</p>`;
+    } catch(e) { const container = document.getElementById("allComplaintsList"); if (container) container.innerHTML = `<p style='text-align:center; padding:20px;'>${currentLang === "en" ? "❌ Unable to load complaints." : "❌ تعذر تحميل البلاغات."}</p>`; }
   }
 
   async function viewComplaintDetails(complaintId) {
@@ -267,9 +409,7 @@
       const data = await res.json();
       const statusClass = `status-${data.status.replace(/ /g, '-')}`;
       const statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
-      const priorityClass = data.priority === "Critical" ? "priority-Critical" : (data.priority === "High" ? "priority-High" : "priority-Normal");
-      const priorityText = data.priority === "Critical" ? (currentLang === "en" ? "CRITICAL" : "طارئ") : (data.priority === "High" ? (currentLang === "en" ? "HIGH" : "عالية") : (currentLang === "en" ? "Normal" : "عادي"));
-      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><h3>📌 ${escapeHtml(data.category)} <span class="priority-badge ${priorityClass}">${priorityText}</span></h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
+      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
       document.getElementById("trackResult").scrollIntoView({ behavior: "smooth" });
     } catch(e) { showToast(currentLang === "en" ? "Error loading details" : "خطأ في تحميل التفاصيل", "error"); }
   }
@@ -286,14 +426,13 @@
       const data = await res.json();
       const statusClass = `status-${data.status.replace(/ /g, '-')}`;
       const statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
-      const priorityClass = data.priority === "Critical" ? "priority-Critical" : (data.priority === "High" ? "priority-High" : "priority-Normal");
-      const priorityText = data.priority === "Critical" ? (currentLang === "en" ? "CRITICAL" : "طارئ") : (data.priority === "High" ? (currentLang === "en" ? "HIGH" : "عالية") : (currentLang === "en" ? "Normal" : "عادي"));
-      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between;"><h3>📌 ${escapeHtml(data.category)} <span class="priority-badge ${priorityClass}">${priorityText}</span></h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
+      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
     } catch(e) { document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">${currentLang === "en" ? "❌ Complaint not found" : "❌ لم يتم العثور على البلاغ"}</p>`; }
   }
 
   async function checkForStatusUpdates() {
     const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
+    const t = currentLang === "en" ? { statusUpdate: "🔔 Status update for complaint" } : { statusUpdate: "🔔 تحديث حالة البلاغ" };
     for (const [id, token] of Object.entries(tokens)) {
       try {
         const res = await fetch(`${API_URL}/api/complaint/${id}/${token}`);
@@ -302,9 +441,7 @@
         const prev = previousStatusMap[id];
         if (prev && prev !== data.status) {
           let statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
-          showToast(`${currentLang === "en" ? `🔔 Status update for complaint ${id}<br>New status: ${statusText}` : `🔔 تحديث حالة البلاغ ${id}<br>الحالة الجديدة: ${statusText}`}`, "info");
-          const badge = document.querySelector(`.status-badge[data-id="${id}"]`);
-          if (badge) { badge.className = `status-badge status-${data.status.replace(/ /g, '-')}`; badge.innerText = statusText; }
+          showToast(`${t.statusUpdate} ${id}<br>${currentLang === "en" ? "New status: " : "الحالة الجديدة: "}${statusText}`, "info");
         }
         previousStatusMap[id] = data.status;
       } catch(e) {}
