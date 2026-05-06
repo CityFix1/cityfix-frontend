@@ -5,16 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>CityFix | Report & Track Issues</title>
   
-  <!-- ========== PWA CONFIGURATION ========== -->
+  <!-- PWA CONFIGURATION -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CityFix">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#7B1E3A">
-  <meta name="msapplication-TileColor" content="#7B1E3A">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <!-- ===================================== -->
+  
+  <!-- SECURITY: Disable Right-Click & Dev Tools -->
+  <script>
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      alert('🔒 Right-click is disabled for security purposes.');
+      return false;
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'F12') {
+        e.preventDefault();
+        alert('🔒 Developer tools are disabled.');
+        return false;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) {
+        e.preventDefault();
+        alert('🔒 Developer tools are disabled.');
+        return false;
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
+        e.preventDefault();
+        alert('🔒 View source is disabled.');
+        return false;
+      }
+    });
+  </script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; }
@@ -84,7 +107,9 @@
     <input id="name" placeholder="Your Name (required)" required>
     <div class="required" id="nameRequiredMsg" style="display: none;">⚠️ Name is required</div>
     
-    <!-- Category Dropdown -->
+    <!-- Phone Number Field -->
+    <input id="phone" type="tel" placeholder="📞 Phone Number (optional)">
+    
     <select id="category">
       <option id="defaultOption" value="" disabled selected>🔽 Select an issue type</option>
       <optgroup id="emergencyGroup" label="🚨 EMERGENCY / CRITICAL">
@@ -200,7 +225,6 @@
   let uploadedImage = "", deviceToken = null, updateInterval = null, previousStatusMap = {};
   let currentLang = localStorage.getItem("cityfix_lang") || "en";
 
-  // Category mapping for language switching
   const categoryMap = {
     "Select an issue type": { en: "🔽 Select an issue type", ar: "🔽 اختر نوع المشكلة" },
     "Fire Hazard": { en: "🚨 Fire Hazard", ar: "🚨 خطر حريق" },
@@ -210,10 +234,54 @@
     "Emergency Response Delay": { en: "🚑 Emergency Response Delay", ar: "🚑 تأخر الاستجابة للطوارئ" },
     "Gas Leak": { en: "💨 Gas Leak", ar: "💨 تسرب غاز" },
     "Open Manholes (Safety Hazard)": { en: "⚠️ Open Manholes", ar: "⚠️ فتحات صرف مكشوفة" },
-    // ... (add all other categories here, keeping existing structure)
+    "Roads & Potholes": { en: "🛣️ Roads & Potholes", ar: "🛣️ الطرق والحفر" },
+    "Drainage/Stormwater Blockage": { en: "💧 Drainage Blockage", ar: "💧 انسداد الصرف" },
+    "Footpath Damage": { en: "👣 Footpath Damage", ar: "👣 تلف الأرصفة" },
+    "Building Violations": { en: "🏗️ Building Violations", ar: "🏗️ مخالفات البناء" },
+    "Bridge/Culvert Damage": { en: "🌉 Bridge Damage", ar: "🌉 تلف الجسور" },
+    "Speed Bump Damage": { en: "🛑 Speed Bump Damage", ar: "🛑 تلف مطبات السرعة" },
+    "Road Markings Faded": { en: "🎨 Road Markings Faded", ar: "🎨 تآكل علامات الطرق" },
+    "Missing Road Signs": { en: "🚸 Missing Road Signs", ar: "🚸 غياب اللوحات الإرشادية" },
+    "Water Supply": { en: "🚰 Water Supply", ar: "🚰 إمدادات المياه" },
+    "Electricity": { en: "⚡ Electricity", ar: "⚡ الكهرباء" },
+    "Sewage Blockage": { en: "🚽 Sewage Blockage", ar: "🚽 انسداد المجاري" },
+    "Street Light Outage": { en: "💡 Street Light Outage", ar: "💡 انطفاء أعمدة الإنارة" },
+    "Safety & Lighting": { en: "🔦 Safety & Lighting", ar: "🔦 السلامة والإضاءة" },
+    "Traffic Signal Malfunction": { en: "🚥 Traffic Signal Malfunction", ar: "🚥 عطل إشارة المرور" },
+    "Stray Animals": { en: "🐕 Stray Animals", ar: "🐕 حيوانات ضالة" },
+    "Missing Manhole Cover": { en: "🔘 Missing Manhole Cover", ar: "🔘 غياب غطاء فتحة الصرف" },
+    "Dangerous Intersection": { en: "⚠️ Dangerous Intersection", ar: "⚠️ تقاطع خطير" },
+    "Parking Violations": { en: "🅿️ Parking Violations", ar: "🅿️ مخالفات وقوف" },
+    "Abandoned Vehicles": { en: "🚗 Abandoned Vehicles", ar: "🚗 مركبات مهجورة" },
+    "Cleanliness & Waste": { en: "🗑️ Cleanliness & Waste", ar: "🗑️ النظافة والنفايات" },
+    "Public Toilet Maintenance": { en: "🚻 Public Toilet Maintenance", ar: "🚻 صيانة دورات المياه" },
+    "Illegal Dumping": { en: "🚛 Illegal Dumping", ar: "🚛 رمي النفايات غير القانوني" },
+    "Dead Animal Removal": { en: "⚰️ Dead Animal Removal", ar: "⚰️ إزالة الحيوانات النافقة" },
+    "Overflowing Bins": { en: "🗑️ Overflowing Bins", ar: "🗑️ حاويات ممتلئة" },
+    "Street Sweeping Required": { en: "🧹 Street Sweeping", ar: "🧹 تنظيف الشوارع" },
+    "Tree Fall/Dangerous Trees": { en: "🌲 Tree Fall", ar: "🌲 سقوط الأشجار" },
+    "Air Pollution": { en: "🌫️ Air Pollution", ar: "🌫️ تلوث الهواء" },
+    "Noise Pollution": { en: "🔊 Noise Pollution", ar: "🔊 تلوث ضوضائي" },
+    "Water Pollution": { en: "💧 Water Pollution", ar: "💧 تلوث المياه" },
+    "Mosquito Infestation": { en: "🦟 Mosquito Infestation", ar: "🦟 انتشار البعوض" },
+    "Bad Odor/Smell": { en: "👃 Bad Odor", ar: "👃 روائح كريهة" },
+    "Dust Accumulation": { en: "🏜️ Dust Accumulation", ar: "🏜️ تراكم الغبار" },
+    "Abandoned Building": { en: "🏚️ Abandoned Building", ar: "🏚️ مبنى مهجور" },
+    "Pest Control Required": { en: "🐀 Pest Control", ar: "🐀 مكافحة الآفات" },
+    "Food Safety Violation": { en: "🍔 Food Safety", ar: "🍔 سلامة الغذاء" },
+    "Clinic/Hospital Issue": { en: "🏥 Clinic Issue", ar: "🏥 مشكلة عيادة" },
+    "Pharmacy Complaint": { en: "💊 Pharmacy Complaint", ar: "💊 شكوى صيدلية" },
+    "Vaccination Center Issue": { en: "💉 Vaccination Issue", ar: "💉 مشكلة مركز تطعيم" },
+    "School Zone Safety": { en: "🏫 School Zone Safety", ar: "🏫 سلامة المدارس" },
+    "Public Park Maintenance": { en: "🌳 Park Maintenance", ar: "🌳 صيانة الحدائق" },
+    "Playground Equipment Damage": { en: "🎠 Playground Damage", ar: "🎠 تلف معدات الملاعب" },
+    "Public Bench Damage": { en: "🪑 Bench Damage", ar: "🪑 تلف المقاعد" },
+    "Fountain Not Working": { en: "⛲ Fountain Not Working", ar: "⛲ تعطل النافورة" },
+    "Public WiFi Not Working": { en: "📶 WiFi Issue", ar: "📶 واي فاي لا يعمل" },
+    "Digital Signage Issue": { en: "📺 Digital Signage", ar: "📺 عطل اللوحات الرقمية" },
+    "Government Website Down": { en: "💻 Website Down", ar: "💻 تعطل موقع حكومي" },
     "Others": { en: "📋 Others", ar: "📋 أخرى" }
   };
-  // (Note: Full categoryMap is assumed to exist from previous code. Keep your existing full mapping.)
 
   function setLanguage(lang) {
     currentLang = lang;
@@ -223,7 +291,6 @@
     const langBtn = document.getElementById("langToggleBtn");
     if (langBtn) langBtn.innerText = lang === "en" ? "🇦🇪 العربية" : "🇬🇧 English";
     
-    // Update optgroup labels (example for emergency group)
     const optgroupLabels = {
       emergencyGroup: lang === "en" ? "🚨 EMERGENCY / CRITICAL" : "🚨 طوارئ / حرجة",
       infraGroup: lang === "en" ? "🏗️ INFRASTRUCTURE" : "🏗️ البنية التحتية",
@@ -241,7 +308,6 @@
       if (el) el.label = label;
     }
     
-    // Update all category options
     const options = document.querySelectorAll("#category option");
     options.forEach(opt => {
       const val = opt.value;
@@ -250,10 +316,9 @@
       }
     });
     
-    // Set text content for UI elements
     const text = {
-      en: { portalLabel: "citizen portal", heroTitle: "Report & Track<br>Civic Issues", heroSub: "Your voice builds better cities — transparent, accountable, fast.", reportTitle: "📝 Report an Issue", namePlace: "Your Name (required)", descPlace: "Describe the issue in detail...", locPlace: "📍 Location (street / area)", gpsBtn: "📍 Detect Location", clearBtn: "🗑️ Clear", gpsHint: "💡 Click \"Detect Location\" to auto-fill your address", submitBtn: "🚀 Submit Report", complaintsTitle: "📋 Your Complaints", refreshBtn: "⟳ Refresh", privacyNote: "🔒 Only complaints from this device appear here. Click any to view details.", trackTitle: "🔍 Track a Specific Complaint", trackSub: "Enter Case ID (e.g., CFX-001)", trackPlace: "Case ID", trackBtn: "Track →", noReports: "📭 No reports yet. Submit your first complaint above.", loading: "Loading your reports...", unableLoad: "❌ Unable to load complaints.", clickHint: "💡 Click any complaint to view full details", submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error.", gpsSuccess: "📍 Location detected!", gpsAllow: "Allow location access", statusUpdate: "🔔 Status update for complaint", nameRequired: "⚠️ Name is required" },
-      ar: { portalLabel: "بوابة المواطن", heroTitle: "الإبلاغ عن المشكلات<br>وتتبعها", heroSub: "صوتك يبني مدناً أفضل — شفافية، مساءلة، وسرعة", reportTitle: "📝 الإبلاغ عن مشكلة", namePlace: "اسمك (مطلوب)", descPlace: "صف المشكلة بالتفصيل...", locPlace: "📍 الموقع (الشارع / المنطقة)", gpsBtn: "📍 تحديد الموقع", clearBtn: "🗑️ مسح", gpsHint: "💡 اضغط \"تحديد الموقع\" لملء عنوانك تلقائياً", submitBtn: "🚀 إرسال البلاغ", complaintsTitle: "📋 بلاغاتك", refreshBtn: "⟳ تحديث", privacyNote: "🔒 فقط البلاغات المرسلة من هذا الجهاز تظهر هنا. اضغط على أي بلاغ لعرض التفاصيل.", trackTitle: "🔍 تتبع بلاغ محدد", trackSub: "أدخل معرف البلاغ (مثال: CFX-001)", trackPlace: "معرف البلاغ", trackBtn: "تتبع ←", noReports: "📭 لا توجد بلاغات بعد. أرسل بلاغك الأول أعلاه.", loading: "جاري تحميل بلاغاتك...", unableLoad: "❌ تعذر تحميل البلاغات.", clickHint: "💡 اضغط على أي بلاغ لعرض التفاصيل", submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال.", gpsSuccess: "📍 تم تحديد الموقع!", gpsAllow: "اسمح بالوصول للموقع", statusUpdate: "🔔 تحديث حالة البلاغ", nameRequired: "⚠️ الاسم مطلوب" }
+      en: { portalLabel: "citizen portal", heroTitle: "Report & Track<br>Civic Issues", heroSub: "Your voice builds better cities — transparent, accountable, fast.", reportTitle: "📝 Report an Issue", namePlace: "Your Name (required)", phonePlace: "📞 Phone Number (optional)", descPlace: "Describe the issue in detail...", locPlace: "📍 Location (street / area)", gpsBtn: "📍 Detect Location", clearBtn: "🗑️ Clear", gpsHint: "💡 Click \"Detect Location\" to auto-fill your address", submitBtn: "🚀 Submit Report", complaintsTitle: "📋 Your Complaints", refreshBtn: "⟳ Refresh", privacyNote: "🔒 Only complaints from this device appear here. Click any to view details.", trackTitle: "🔍 Track a Specific Complaint", trackSub: "Enter Case ID (e.g., CFX-001)", trackPlace: "Case ID", trackBtn: "Track →", noReports: "📭 No reports yet. Submit your first complaint above.", loading: "Loading your reports...", unableLoad: "❌ Unable to load complaints.", clickHint: "💡 Click any complaint to view full details", submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error.", gpsSuccess: "📍 Location detected!", gpsAllow: "Allow location access", statusUpdate: "🔔 Status update for complaint", nameRequired: "⚠️ Name is required" },
+      ar: { portalLabel: "بوابة المواطن", heroTitle: "الإبلاغ عن المشكلات<br>وتتبعها", heroSub: "صوتك يبني مدناً أفضل — شفافية، مساءلة، وسرعة", reportTitle: "📝 الإبلاغ عن مشكلة", namePlace: "اسمك (مطلوب)", phonePlace: "📞 رقم الهاتف (اختياري)", descPlace: "صف المشكلة بالتفصيل...", locPlace: "📍 الموقع (الشارع / المنطقة)", gpsBtn: "📍 تحديد الموقع", clearBtn: "🗑️ مسح", gpsHint: "💡 اضغط \"تحديد الموقع\" لملء عنوانك تلقائياً", submitBtn: "🚀 إرسال البلاغ", complaintsTitle: "📋 بلاغاتك", refreshBtn: "⟳ تحديث", privacyNote: "🔒 فقط البلاغات المرسلة من هذا الجهاز تظهر هنا. اضغط على أي بلاغ لعرض التفاصيل.", trackTitle: "🔍 تتبع بلاغ محدد", trackSub: "أدخل معرف البلاغ (مثال: CFX-001)", trackPlace: "معرف البلاغ", trackBtn: "تتبع ←", noReports: "📭 لا توجد بلاغات بعد. أرسل بلاغك الأول أعلاه.", loading: "جاري تحميل بلاغاتك...", unableLoad: "❌ تعذر تحميل البلاغات.", clickHint: "💡 اضغط على أي بلاغ لعرض التفاصيل", submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال.", gpsSuccess: "📍 تم تحديد الموقع!", gpsAllow: "اسمح بالوصول للموقع", statusUpdate: "🔔 تحديث حالة البلاغ", nameRequired: "⚠️ الاسم مطلوب" }
     };
     const t = text[lang];
     document.getElementById("portalLabel").innerText = t.portalLabel;
@@ -261,6 +326,7 @@
     document.getElementById("heroSub").innerText = t.heroSub;
     document.getElementById("reportTitle").innerHTML = t.reportTitle;
     document.getElementById("name").placeholder = t.namePlace;
+    document.getElementById("phone").placeholder = t.phonePlace;
     document.getElementById("description").placeholder = t.descPlace;
     document.getElementById("location").placeholder = t.locPlace;
     document.getElementById("gpsBtn").innerText = t.gpsBtn;
@@ -300,7 +366,7 @@
       try { const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`); const data = await res.json(); document.getElementById("location").value = data.display_name || `${lat}, ${lon}`; showToast(t.success, "info"); } catch(e) { showToast(t.success, "info"); }
     }, () => showToast(t.allow, "error"));
   }
-  function clearForm() { document.getElementById("name").value = ""; document.getElementById("description").value = ""; document.getElementById("location").value = ""; document.getElementById("photo").value = ""; document.getElementById("preview").style.display = "none"; uploadedImage = ""; document.getElementById("nameRequiredMsg").style.display = "none"; }
+  function clearForm() { document.getElementById("name").value = ""; document.getElementById("phone").value = ""; document.getElementById("description").value = ""; document.getElementById("location").value = ""; document.getElementById("photo").value = ""; document.getElementById("preview").style.display = "none"; uploadedImage = ""; document.getElementById("nameRequiredMsg").style.display = "none"; }
 
   async function submitComplaint() {
     const btn = document.getElementById("submitBtn");
@@ -321,7 +387,16 @@
     if (!btn) return;
     const t = currentLang === "en" ? { submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error." } : { submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال." };
     btn.disabled = true; btn.innerText = t.submitting;
-    const complaint = { name: nameInput, category: categorySelect.value, description: document.getElementById("description").value, location: document.getElementById("location").value, photo: uploadedImage, deviceToken: deviceToken, priority: "Normal" };
+    const complaint = { 
+      name: nameInput, 
+      phone: document.getElementById("phone").value || "",
+      category: categorySelect.value, 
+      description: document.getElementById("description").value, 
+      location: document.getElementById("location").value, 
+      photo: uploadedImage, 
+      deviceToken: deviceToken, 
+      priority: "Normal" 
+    };
     try {
       const res = await fetch(`${API_URL}/api/complaints`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(complaint) });
       const data = await res.json();
@@ -362,7 +437,8 @@
       const data = await res.json();
       const statusClass = `status-${data.status.replace(/ /g, '-')}`;
       const statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
-      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
+      const phoneHtml = data.phone ? `<p><strong>📞 Phone:</strong> ${escapeHtml(data.phone)}</p>` : '';
+      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Name:" : "الاسم:"}</strong> ${escapeHtml(data.name)}</p>${phoneHtml}<p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
       document.getElementById("trackResult").scrollIntoView({ behavior: "smooth" });
     } catch(e) { showToast(currentLang === "en" ? "Error loading details" : "خطأ في تحميل التفاصيل", "error"); }
   }
@@ -379,7 +455,8 @@
       const data = await res.json();
       const statusClass = `status-${data.status.replace(/ /g, '-')}`;
       const statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
-      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
+      const phoneHtml = data.phone ? `<p><strong>📞 Phone:</strong> ${escapeHtml(data.phone)}</p>` : '';
+      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Name:" : "الاسم:"}</strong> ${escapeHtml(data.name)}</p>${phoneHtml}<p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
     } catch(e) { document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">${currentLang === "en" ? "❌ Complaint not found" : "❌ لم يتم العثور على البلاغ"}</p>`; }
   }
 
