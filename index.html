@@ -1,259 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>CityFix | Civic Reporting Platform</title>
+  <title>CityFix | Report & Track Issues</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, 'Segoe UI', sans-serif;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; }
     :root {
-      --bg: #F5F5F0;
-      --card: #FFFFFF;
-      --text: #111111;
-      --text-secondary: #5A6E66;
-      --primary: #7B1E3A;
-      --secondary: #1D4D3D;
-      --accent: #C6A15B;
-      --input: #F0F0F0;
-      --border: #DDD9CC;
-      --pending: #E67E22;
-      --progress: #3498DB;
-      --resolved: #27AE60;
+      --bg: #F5F5F0; --card: #FFFFFF; --text: #111111; --text-secondary: #5A6E66;
+      --primary: #7B1E3A; --secondary: #1D4D3D; --accent: #C6A15B; --input: #F0F0F0;
+      --border: #DDD9CC; --pending: #E67E22; --progress: #3498DB; --resolved: #27AE60;
+      --critical: #E74C3C; --high: #E67E22; --normal: #3498DB;
     }
-
     body.dark {
-      --bg: #0A0F0E;
-      --card: #111B18;
-      --text: #EFF4F2;
-      --text-secondary: #9DB7AD;
-      --primary: #8F2347;
-      --secondary: #295D4B;
-      --accent: #D4B16A;
-      --input: #172420;
+      --bg: #0A0F0E; --card: #111B18; --text: #EFF4F2; --text-secondary: #9DB7AD;
+      --primary: #8F2347; --secondary: #295D4B; --accent: #D4B16A; --input: #172420;
       --border: #25332E;
     }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      transition: background 0.2s, color 0.2s;
-    }
-
-    /* Arabic text alignment */
-    body[dir="rtl"] {
-      text-align: right;
-    }
-    body[dir="rtl"] .nav,
-    body[dir="rtl"] .hero,
-    body[dir="rtl"] .card {
-      text-align: right;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    /* Navbar */
-    .nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 0;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    .logo {
-      font-size: 44px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-    .logo small {
-      font-size: 12px;
-      font-weight: normal;
-      display: block;
-      color: var(--accent);
-    }
-    .toggle-group {
-      display: flex;
-      gap: 10px;
-    }
-    .toggle-btn {
-      background: var(--input);
-      border: 1px solid var(--border);
-      padding: 10px 16px;
-      border-radius: 40px;
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: 0.2s;
-    }
-    .toggle-btn:hover {
-      opacity: 0.8;
-    }
-
-    /* Hero */
-    .hero {
-      padding: 40px 0 20px;
-      text-align: center;
-    }
-    .hero h1 {
-      font-size: 52px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .hero p {
-      margin-top: 16px;
-      font-size: 18px;
-      opacity: 0.8;
-    }
-
-    /* Cards */
-    .card {
-      background: var(--card);
-      padding: 28px;
-      border-radius: 28px;
-      margin-top: 24px;
-      box-shadow: 0 10px 35px rgba(0,0,0,0.08);
-      border: 1px solid var(--border);
-    }
-    .card h2 {
-      margin-bottom: 8px;
-      font-size: 1.5rem;
-    }
-
-    /* Form Elements */
-    input, textarea, select {
-      width: 100%;
-      padding: 16px;
-      margin-top: 14px;
-      border: none;
-      border-radius: 16px;
-      background: var(--input);
-      color: var(--text);
-      font-size: 15px;
-      border: 1px solid var(--border);
-    }
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-    optgroup {
-      font-weight: 800;
-      color: var(--accent);
-    }
-    button {
-      width: 100%;
-      padding: 16px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .preview {
-      width: 100%;
-      margin-top: 14px;
-      border-radius: 18px;
-      display: none;
-    }
-    .gps-hint {
-      font-size: 12px;
-      color: var(--accent);
-      margin-top: 8px;
-      text-align: center;
-    }
-
-    /* Status Badges */
-    .status-badge {
-      display: inline-block;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 0.85rem;
-    }
+    body { background: var(--bg); color: var(--text); transition: 0.2s; }
+    body[dir="rtl"] { text-align: right; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 15px; }
+    .logo { font-size: 44px; font-weight: 800; color: var(--primary); }
+    .logo small { font-size: 12px; font-weight: normal; display: block; color: var(--accent); }
+    .toggle-group { display: flex; gap: 12px; }
+    .toggle-btn { background: var(--input); border: 1px solid var(--border); padding: 10px 16px; border-radius: 40px; color: var(--text); cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+    .hero { padding: 40px 0 20px; text-align: center; }
+    .hero h1 { font-size: 52px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p { margin-top: 16px; font-size: 18px; opacity: 0.8; }
+    .card { background: var(--card); padding: 28px; border-radius: 28px; margin-top: 24px; box-shadow: 0 10px 35px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+    .card h2 { margin-bottom: 8px; font-size: 1.5rem; }
+    input, textarea, select { width: 100%; padding: 16px; margin-top: 14px; border: none; border-radius: 16px; background: var(--input); color: var(--text); font-size: 15px; border: 1px solid var(--border); }
+    textarea { min-height: 120px; resize: vertical; }
+    optgroup { font-weight: 800; color: var(--accent); }
+    button { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-weight: 700; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .preview { width: 100%; margin-top: 14px; border-radius: 18px; display: none; }
+    .gps-hint { font-size: 12px; color: var(--accent); margin-top: 8px; text-align: center; }
+    .priority-select { border-left: 3px solid; }
+    .priority-critical { border-left-color: var(--critical); background: var(--critical)10; }
+    .priority-high { border-left-color: var(--high); }
+    .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
     .status-Pending { background: var(--pending); color: white; }
     .status-In-Progress { background: var(--progress); color: white; }
     .status-Resolved { background: var(--resolved); color: white; }
-
-    /* Complaint List */
-    .complaint-list-item {
-      background: var(--input);
-      padding: 16px;
-      border-radius: 20px;
-      margin-bottom: 12px;
-      border-left: 3px solid var(--accent);
-      cursor: pointer;
-      transition: 0.2s;
-    }
+    .complaint-list-item { background: var(--input); padding: 16px; border-radius: 20px; margin-bottom: 12px; border-right: 3px solid var(--accent); cursor: pointer; transition: 0.2s; }
     .complaint-list-item:hover { transform: translateX(5px); opacity: 0.9; }
-    .track-result-card {
-      background: var(--card);
-      padding: 18px;
-      border-radius: 24px;
-      margin-top: 15px;
-      border: 1px solid var(--accent);
-    }
-
-    /* Live Badge */
-    .live-badge {
-      background: var(--resolved);
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      margin-left: 10px;
-      animation: pulse 1.5s infinite;
-      color: white;
-    }
+    .track-result-card { background: var(--card); padding: 18px; border-radius: 24px; margin-top: 15px; border: 1px solid var(--accent); }
+    .live-badge { background: var(--resolved); font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 10px; animation: pulse 1.5s infinite; color: white; }
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-    /* Toast Notification */
-    .toast-notification {
-      position: fixed;
-      top: 80px;
-      right: 20px;
-      background: var(--card);
-      color: var(--text);
-      padding: 14px 22px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      z-index: 9999;
-      display: none;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      border-left: 4px solid var(--resolved);
-      max-width: 350px;
-      animation: slideIn 0.3s ease;
-    }
+    .toast-notification { position: fixed; top: 80px; right: 20px; background: var(--card); color: var(--text); padding: 14px 22px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; z-index: 9999; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-right: 4px solid var(--resolved); max-width: 350px; animation: slideIn 0.3s ease; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-    @media (max-width: 700px) {
-      .hero h1 { font-size: 36px; }
-      .grid { grid-template-columns: 1fr; }
-      .nav { flex-direction: column; }
-      .toast-notification { top: 70px; right: 10px; left: 10px; max-width: none; }
-    }
+    .priority-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 600; margin-left: 8px; }
+    .priority-Critical { background: #E74C3C; color: white; }
+    .priority-High { background: #E67E22; color: white; }
+    .priority-Normal { background: #3498DB; color: white; }
+    @media (max-width: 700px) { .hero h1 { font-size: 36px; } .grid { grid-template-columns: 1fr; } .nav { flex-direction: column; } .toast-notification { top: 70px; right: 10px; left: 10px; max-width: none; } }
   </style>
 </head>
-<body dir="ltr">
+<body>
 <div class="container">
   <div class="nav">
     <div class="logo">🏙️ CityFix <small id="portalLabel">citizen portal</small></div>
@@ -262,56 +67,74 @@
       <button class="toggle-btn" onclick="toggleTheme()">🌗 Theme</button>
     </div>
   </div>
-
   <div class="hero">
     <h1 id="heroTitle">Report & Track<br>Civic Issues</h1>
     <p id="heroSub">Your voice builds better cities — transparent, accountable, fast.</p>
   </div>
-
-  <!-- Toast Notification -->
   <div id="toastNotification" class="toast-notification"></div>
 
   <!-- Report Form -->
   <div class="card">
     <h2 id="reportTitle">📝 Report an Issue</h2>
-    <input id="name" placeholder="Your Name (optional)" data-en-placeholder="Your Name (optional)" data-ar-placeholder="اسمك (اختياري)">
-    <select id="category">
-      <optgroup label="🏗️ INFRASTRUCTURE" data-en-label="🏗️ INFRASTRUCTURE" data-ar-label="🏗️ البنية التحتية">
-        <option value="Roads & Potholes" data-en="Roads & Potholes" data-ar="الطرق والحفر">Roads & Potholes</option>
-        <option value="Drainage/Stormwater Blockage" data-en="Drainage/Stormwater Blockage" data-ar="انسداد الصرف الصحي">Drainage/Stormwater Blockage</option>
-        <option value="Footpath Damage" data-en="Footpath Damage" data-ar="تلف الأرصفة">Footpath Damage</option>
-        <option value="Building Violations" data-en="Building Violations" data-ar="مخالفات البناء">Building Violations</option>
-      </optgroup>
-      <optgroup label="💧 UTILITIES" data-en-label="💧 UTILITIES" data-ar-label="💧 المرافق">
-        <option value="Water Supply" data-en="Water Supply" data-ar="إمدادات المياه">Water Supply</option>
-        <option value="Electricity" data-en="Electricity" data-ar="الكهرباء">Electricity</option>
-      </optgroup>
-      <optgroup label="🚦 TRANSPORT & SAFETY" data-en-label="🚦 TRANSPORT & SAFETY" data-ar-label="🚦 النقل والسلامة">
-        <option value="Safety & Lighting" data-en="Safety & Lighting" data-ar="السلامة والإضاءة">Safety & Lighting</option>
-        <option value="Traffic Signal Malfunction" data-en="Traffic Signal Malfunction" data-ar="عطل إشارة المرور">Traffic Signal Malfunction</option>
-        <option value="Open Manholes (Safety Hazard)" data-en="Open Manholes (Safety Hazard)" data-ar="فتحات الصرف المكشوفة">Open Manholes (Safety Hazard)</option>
-        <option value="Stray Animals" data-en="Stray Animals" data-ar="الحيوانات الضالة">Stray Animals</option>
-      </optgroup>
-      <optgroup label="🧹 CLEANLINESS" data-en-label="🧹 CLEANLINESS" data-ar-label="🧹 النظافة">
-        <option value="Cleanliness & Waste" data-en="Cleanliness & Waste" data-ar="النظافة والنفايات">Cleanliness & Waste</option>
-        <option value="Public Toilet Maintenance" data-en="Public Toilet Maintenance" data-ar="صيانة دورات المياه العامة">Public Toilet Maintenance</option>
-      </optgroup>
-      <optgroup label="🌳 ENVIRONMENT" data-en-label="🌳 ENVIRONMENT" data-ar-label="🌳 البيئة">
-        <option value="Tree Fall/Dangerous Trees" data-en="Tree Fall/Dangerous Trees" data-ar="سقوط الأشجار / أشجار خطرة">Tree Fall/Dangerous Trees</option>
-        <option value="Air Pollution" data-en="Air Pollution" data-ar="تلوث الهواء">Air Pollution</option>
-        <option value="Noise Pollution" data-en="Noise Pollution" data-ar="التلوث الضوضائي">Noise Pollution</option>
-      </optgroup>
-      <optgroup label="📋 OTHER" data-en-label="📋 OTHER" data-ar-label="📋 أخرى">
-        <option value="Others" data-en="Others" data-ar="أخرى">Others</option>
-      </optgroup>
+    <input id="name" placeholder="Your Name (optional)">
+    
+    <!-- Priority Selection (Emergency/Urgent at top) -->
+    <select id="priority" style="border-left: 4px solid #E74C3C; font-weight: bold;">
+      <option value="Normal" selected>✅ Normal Priority - عادي</option>
+      <option value="High">🔶 High Priority - عالية</option>
+      <option value="Critical">🚨 CRITICAL / EMERGENCY - طارئ</option>
     </select>
-    <textarea id="description" placeholder="Describe the issue in detail..." data-en-placeholder="Describe the issue in detail..." data-ar-placeholder="صف المشكلة بالتفصيل..."></textarea>
-    <input id="location" placeholder="📍 Location (street / area)" data-en-placeholder="📍 Location (street / area)" data-ar-placeholder="📍 الموقع (الشارع / المنطقة)">
+    
+    <!-- 52+ Categories Dropdown -->
+    <select id="category">
+      <optgroup label="🏗️ INFRASTRUCTURE">
+        <option>Roads & Potholes</option><option>Drainage/Stormwater Blockage</option><option>Footpath Damage</option>
+        <option>Building Violations</option><option>Bridge/Culvert Damage</option><option>Speed Bump Damage</option>
+        <option>Road Markings Faded</option><option>Missing Road Signs</option>
+      </optgroup>
+      <optgroup label="💧 UTILITIES">
+        <option>Water Supply</option><option>Electricity</option><option>Sewage Blockage</option>
+        <option>Gas Leak</option><option>Street Light Outage</option>
+      </optgroup>
+      <optgroup label="🚦 TRANSPORT & SAFETY">
+        <option>Safety & Lighting</option><option>Traffic Signal Malfunction</option><option>Open Manholes (Safety Hazard)</option>
+        <option>Stray Animals</option><option>Missing Manhole Cover</option><option>Dangerous Intersection</option>
+        <option>Parking Violations</option><option>Abandoned Vehicles</option>
+      </optgroup>
+      <optgroup label="🧹 CLEANLINESS">
+        <option>Cleanliness & Waste</option><option>Public Toilet Maintenance</option><option>Illegal Dumping</option>
+        <option>Dead Animal Removal</option><option>Overflowing Bins</option><option>Street Sweeping Required</option>
+      </optgroup>
+      <optgroup label="🌳 ENVIRONMENT">
+        <option>Tree Fall/Dangerous Trees</option><option>Air Pollution</option><option>Noise Pollution</option>
+        <option>Water Pollution</option><option>Mosquito Infestation</option><option>Bad Odor/Smell</option>
+        <option>Dust Accumulation</option>
+      </optgroup>
+      <optgroup label="🏥 PUBLIC HEALTH">
+        <option>Abandoned Building</option><option>Pest Control Required</option><option>Food Safety Violation</option>
+        <option>Clinic/Hospital Issue</option><option>Pharmacy Complaint</option><option>Vaccination Center Issue</option>
+      </optgroup>
+      <optgroup label="🏫 PUBLIC FACILITIES">
+        <option>School Zone Safety</option><option>Public Park Maintenance</option><option>Playground Equipment Damage</option>
+        <option>Public Bench Damage</option><option>Fountain Not Working</option>
+      </optgroup>
+      <optgroup label="⚠️ EMERGENCY & SAFETY">
+        <option>Fire Hazard</option><option>Building Collapse Risk</option><option>Flooding/Waterlogging</option>
+        <option>Landslide Risk</option><option>Emergency Response Delay</option>
+      </optgroup>
+      <optgroup label="📡 DIGITAL & COMMUNICATION">
+        <option>Public WiFi Not Working</option><option>Digital Signage Issue</option><option>Government Website Down</option>
+      </optgroup>
+      <optgroup label="📋 OTHER"><option>Others</option></optgroup>
+    </select>
+    
+    <textarea id="description" placeholder="Describe the issue in detail..."></textarea>
+    <input id="location" placeholder="📍 Location (street / area)">
     <div class="grid">
-      <button id="gpsBtn" onclick="useGPS()">📍 Detect Location</button>
-      <button id="clearBtn" onclick="clearForm()">🗑️ Clear</button>
+      <button onclick="useGPS()">📍 Detect Location</button>
+      <button onclick="clearForm()">🗑️ Clear</button>
     </div>
-    <div class="gps-hint" id="gpsHint">💡 Click "Detect Location" to auto-fill your address</div>
+    <div class="gps-hint">💡 Click "Detect Location" to auto-fill your address</div>
     <input type="file" id="photo" accept="image/*">
     <img id="preview" class="preview">
     <button id="submitBtn" onclick="submitComplaint()">🚀 Submit Report</button>
@@ -321,7 +144,7 @@
   <div class="card">
     <h2 id="complaintsTitle">📋 Your Complaints <span class="live-badge">LIVE UPDATES</span></h2>
     <div id="allComplaintsList"><p style="text-align:center; padding:20px;">Loading your reports...</p></div>
-    <button id="refreshBtn" onclick="loadMyComplaints()" style="background: var(--input); color: var(--text); margin-top: 12px;">⟳ Refresh</button>
+    <button onclick="loadMyComplaints()" style="background: var(--input); color: var(--text); margin-top: 12px;">⟳ Refresh</button>
     <p id="privacyNote" style="font-size: 11px; margin-top: 12px; opacity: 0.7;">🔒 Only complaints from this device appear here. Click any to view details.</p>
   </div>
 
@@ -330,294 +153,145 @@
     <h2 id="trackTitle">🔍 Track a Specific Complaint</h2>
     <p id="trackSub" style="margin-bottom: 10px;">Enter Case ID (e.g., CFX-001)</p>
     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <input id="trackId" placeholder="Case ID" style="flex: 2;" data-en-placeholder="Case ID" data-ar-placeholder="معرف البلاغ">
-      <button id="trackBtn" onclick="trackSpecificComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
+      <input id="trackId" placeholder="Case ID" style="flex: 2;">
+      <button onclick="trackSpecificComplaint()" style="flex: 1; margin-top: 0;">Track →</button>
     </div>
     <div id="trackResult"></div>
   </div>
 </div>
 
 <script>
-  // ========== CONFIGURATION ==========
   const API_URL = "https://cityfix-backend-bq0n.onrender.com";
-
-  let uploadedImage = "";
-  let deviceToken = null;
-  let updateInterval = null;
-  let previousStatusMap = {};
-
-  // ========== LANGUAGE & THEME ==========
-  let currentLanguage = localStorage.getItem("cityfix_lang") || "en";
+  let uploadedImage = "", deviceToken = null, updateInterval = null, previousStatusMap = {};
+  let currentLang = localStorage.getItem("cityfix_lang") || "en";
 
   function setLanguage(lang) {
-    currentLanguage = lang;
+    currentLang = lang;
     localStorage.setItem("cityfix_lang", lang);
     document.documentElement.lang = lang === "en" ? "en" : "ar";
     document.body.dir = lang === "en" ? "ltr" : "rtl";
     document.getElementById("langToggleBtn").innerText = lang === "en" ? "🇦🇪 العربية" : "🇬🇧 English";
-    
-    // Update all translatable elements
-    const translations = {
-      en: {
-        portalLabel: "citizen portal",
-        heroTitle: "Report & Track<br>Civic Issues",
-        heroSub: "Your voice builds better cities — transparent, accountable, fast.",
-        reportTitle: "📝 Report an Issue",
-        gpsBtn: "📍 Detect Location",
-        clearBtn: "🗑️ Clear",
-        gpsHint: "💡 Click \"Detect Location\" to auto-fill your address",
-        submitBtn: "🚀 Submit Report",
-        complaintsTitle: "📋 Your Complaints",
-        refreshBtn: "⟳ Refresh",
-        privacyNote: "🔒 Only complaints from this device appear here. Click any to view details.",
-        trackTitle: "🔍 Track a Specific Complaint",
-        trackSub: "Enter Case ID (e.g., CFX-001)",
-        trackBtn: "Track →",
-        submitting: "Submitting...",
-        submitted: "✅ Submitted! Case ID: ",
-        error: "❌ Submission error. Backend unreachable?",
-        noReports: "📭 No reports yet. Submit your first complaint above.",
-        loading: "Loading your reports...",
-        unableLoad: "❌ Unable to load complaints."
-      },
-      ar: {
-        portalLabel: "بوابة المواطن",
-        heroTitle: "الإبلاغ عن المشكلات<br>وتتبعها",
-        heroSub: "صوتك يبني مدناً أفضل — شفافية، مساءلة، وسرعة",
-        reportTitle: "📝 الإبلاغ عن مشكلة",
-        gpsBtn: "📍 تحديد الموقع",
-        clearBtn: "🗑️ مسح",
-        gpsHint: "💡 اضغط \"تحديد الموقع\" لملء عنوانك تلقائياً",
-        submitBtn: "🚀 إرسال البلاغ",
-        complaintsTitle: "📋 بلاغاتك",
-        refreshBtn: "⟳ تحديث",
-        privacyNote: "🔒 فقط البلاغات المرسلة من هذا الجهاز تظهر هنا. اضغط على أي بلاغ للاطلاع على التفاصيل.",
-        trackTitle: "🔍 تتبع بلاغ محدد",
-        trackSub: "أدخل معرف البلاغ (مثال: CFX-001)",
-        trackBtn: "تتبع ←",
-        submitting: "جاري الإرسال...",
-        submitted: "✅ تم الإرسال! معرف البلاغ: ",
-        error: "❌ خطأ في الإرسال. الخادم لا يستجيب؟",
-        noReports: "📭 لا توجد بلاغات بعد. أرسل بلاغك الأول أعلاه.",
-        loading: "جاري تحميل بلاغاتك...",
-        unableLoad: "❌ تعذر تحميل البلاغات."
-      }
+    const t = {
+      en: { portalLabel: "citizen portal", heroTitle: "Report & Track<br>Civic Issues", heroSub: "Your voice builds better cities — transparent, accountable, fast.", reportTitle: "📝 Report an Issue", complaintsTitle: "📋 Your Complaints", trackTitle: "🔍 Track a Specific Complaint", trackSub: "Enter Case ID (e.g., CFX-001)", privacyNote: "🔒 Only complaints from this device appear here. Click any to view details.", gpsHint: "💡 Click \"Detect Location\" to auto-fill your address", submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error.", noReports: "📭 No reports yet.", loading: "Loading...", unableLoad: "❌ Unable to load complaints.", clickHint: "💡 Click any complaint to view full details" },
+      ar: { portalLabel: "بوابة المواطن", heroTitle: "الإبلاغ عن المشكلات<br>وتتبعها", heroSub: "صوتك يبني مدناً أفضل — شفافية، مساءلة، وسرعة", reportTitle: "📝 الإبلاغ عن مشكلة", complaintsTitle: "📋 بلاغاتك", trackTitle: "🔍 تتبع بلاغ محدد", trackSub: "أدخل معرف البلاغ (مثال: CFX-001)", privacyNote: "🔒 فقط البلاغات المرسلة من هذا الجهاز تظهر هنا. اضغط على أي بلاغ للاطلاع على التفاصيل.", gpsHint: "💡 اضغط \"تحديد الموقع\" لملء عنوانك تلقائياً", submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال.", noReports: "📭 لا توجد بلاغات بعد.", loading: "جاري التحميل...", unableLoad: "❌ تعذر تحميل البلاغات.", clickHint: "💡 اضغط على أي بلاغ لعرض التفاصيل" }
     };
-    
-    const t = translations[lang];
-    document.getElementById("portalLabel").innerText = t.portalLabel;
-    document.getElementById("heroTitle").innerHTML = t.heroTitle;
-    document.getElementById("heroSub").innerText = t.heroSub;
-    document.getElementById("reportTitle").innerHTML = t.reportTitle;
-    document.getElementById("gpsBtn").innerText = t.gpsBtn;
-    document.getElementById("clearBtn").innerText = t.clearBtn;
-    document.getElementById("gpsHint").innerText = t.gpsHint;
-    document.getElementById("submitBtn").innerText = t.submitBtn;
-    document.getElementById("complaintsTitle").innerHTML = t.complaintsTitle + ' <span class="live-badge">LIVE UPDATES</span>';
-    document.getElementById("refreshBtn").innerText = t.refreshBtn;
-    document.getElementById("privacyNote").innerText = t.privacyNote;
-    document.getElementById("trackTitle").innerHTML = t.trackTitle;
-    document.getElementById("trackSub").innerText = t.trackSub;
-    document.getElementById("trackBtn").innerText = t.trackBtn;
-    
-    // Update placeholders
+    const tr = t[lang];
+    document.getElementById("portalLabel").innerText = tr.portalLabel;
+    document.getElementById("heroTitle").innerHTML = tr.heroTitle;
+    document.getElementById("heroSub").innerText = tr.heroSub;
+    document.getElementById("reportTitle").innerHTML = tr.reportTitle;
+    document.getElementById("complaintsTitle").innerHTML = tr.complaintsTitle + ' <span class="live-badge">LIVE UPDATES</span>';
+    document.getElementById("trackTitle").innerHTML = tr.trackTitle;
+    document.getElementById("trackSub").innerText = tr.trackSub;
+    document.getElementById("privacyNote").innerText = tr.privacyNote;
+    document.getElementById("gpsHint").innerText = tr.gpsHint;
     document.getElementById("name").placeholder = lang === "en" ? "Your Name (optional)" : "اسمك (اختياري)";
     document.getElementById("description").placeholder = lang === "en" ? "Describe the issue in detail..." : "صف المشكلة بالتفصيل...";
     document.getElementById("location").placeholder = lang === "en" ? "📍 Location (street / area)" : "📍 الموقع (الشارع / المنطقة)";
     document.getElementById("trackId").placeholder = lang === "en" ? "Case ID" : "معرف البلاغ";
-    
-    // Update category options
-    const optgroups = document.querySelectorAll("#category optgroup");
-    optgroups.forEach(og => {
-      const enLabel = og.getAttribute("data-en-label");
-      const arLabel = og.getAttribute("data-ar-label");
-      if (enLabel && arLabel) og.label = lang === "en" ? enLabel : arLabel;
-    });
-    const options = document.querySelectorAll("#category option");
-    options.forEach(opt => {
-      const enText = opt.getAttribute("data-en");
-      const arText = opt.getAttribute("data-ar");
-      if (enText && arText) opt.innerText = lang === "en" ? enText : arText;
-    });
-  }
-
-  function toggleLanguage() {
-    setLanguage(currentLanguage === "en" ? "ar" : "en");
-  }
-
-  function toggleTheme() {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("cityfix_theme", document.body.classList.contains("dark") ? "dark" : "light");
-  }
-  
-  function loadTheme() {
-    if (localStorage.getItem("cityfix_theme") === "dark") document.body.classList.add("dark");
-  }
-  loadTheme();
-
-  function showToast(message, type = "info") {
-    const toast = document.getElementById("toastNotification");
-    toast.style.borderLeftColor = type === "error" ? "#E74C3C" : "var(--resolved)";
-    toast.innerHTML = message;
-    toast.style.display = "block";
-    setTimeout(() => { toast.style.display = "none"; }, 4500);
-  }
-
-  // ========== DEVICE TOKEN ==========
-  function getDeviceToken() {
-    let token = localStorage.getItem("cityfix_device_token");
-    if (!token) {
-      token = Math.random().toString(36).substring(2, 20) + Math.random().toString(36).substring(2, 20);
-      localStorage.setItem("cityfix_device_token", token);
+    const priorityMap = { "Normal Priority - عادي": { en: "Normal", ar: "عادي" }, "High Priority - عالية": { en: "High", ar: "عالية" }, "CRITICAL / EMERGENCY - طارئ": { en: "Critical", ar: "طارئ" } };
+    const prioritySelect = document.getElementById("priority");
+    for (let i = 0; i < prioritySelect.options.length; i++) {
+      const opt = prioritySelect.options[i];
+      const val = opt.value;
+      opt.innerText = lang === "en" ? (val === "Normal" ? "✅ Normal Priority" : val === "High" ? "🔶 High Priority" : "🚨 CRITICAL / EMERGENCY") : (val === "Normal" ? "✅ عادي" : val === "High" ? "🔶 عالية" : "🚨 طارئ");
     }
-    return token;
   }
+  function toggleLanguage() { setLanguage(currentLang === "en" ? "ar" : "en"); loadMyComplaints(); }
+  function toggleTheme() { document.body.classList.toggle("dark"); localStorage.setItem("cityfix_theme", document.body.classList.contains("dark") ? "dark" : "light"); }
+  function loadTheme() { if (localStorage.getItem("cityfix_theme") === "dark") document.body.classList.add("dark"); }
+  loadTheme(); setLanguage(currentLang);
+
+  function showToast(msg, type = "info") { const toast = document.getElementById("toastNotification"); toast.style.borderRightColor = type === "error" ? "#E74C3C" : "var(--resolved)"; toast.innerHTML = msg; toast.style.display = "block"; setTimeout(() => toast.style.display = "none", 4500); }
+  function getDeviceToken() { let token = localStorage.getItem("cityfix_device_token"); if (!token) { token = Math.random().toString(36).substring(2, 20) + Math.random().toString(36).substring(2, 20); localStorage.setItem("cityfix_device_token", token); } return token; }
   deviceToken = getDeviceToken();
 
-  // ========== IMAGE PREVIEW ==========
   document.getElementById("photo")?.addEventListener("change", function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      uploadedImage = ev.target.result;
-      document.getElementById("preview").src = uploadedImage;
-      document.getElementById("preview").style.display = "block";
-    };
+    reader.onload = (ev) => { uploadedImage = ev.target.result; document.getElementById("preview").src = uploadedImage; document.getElementById("preview").style.display = "block"; };
     reader.readAsDataURL(file);
   });
 
-  // ========== GPS ==========
   async function useGPS() {
     if (!navigator.geolocation) return showToast("GPS not supported", "error");
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const lat = pos.coords.latitude, lon = pos.coords.longitude;
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-        const data = await res.json();
-        document.getElementById("location").value = data.display_name || `${lat}, ${lon}`;
-        showToast(currentLanguage === "en" ? "📍 Location detected!" : "📍 تم تحديد الموقع!", "info");
-      } catch(e) { showToast(currentLanguage === "en" ? "Location detected" : "تم تحديد الموقع", "info"); }
-    }, () => showToast(currentLanguage === "en" ? "Allow location access" : "اسمح بالوصول للموقع", "error"));
+      try { const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`); const data = await res.json(); document.getElementById("location").value = data.display_name || `${lat}, ${lon}`; showToast(currentLang === "en" ? "📍 Location detected!" : "📍 تم تحديد الموقع!", "info"); } catch(e) { showToast(currentLang === "en" ? "Location detected" : "تم تحديد الموقع", "info"); }
+    }, () => showToast(currentLang === "en" ? "Allow location access" : "اسمح بالوصول للموقع", "error"));
   }
+  function clearForm() { document.getElementById("name").value = ""; document.getElementById("description").value = ""; document.getElementById("location").value = ""; document.getElementById("photo").value = ""; document.getElementById("preview").style.display = "none"; uploadedImage = ""; }
 
-  function clearForm() {
-    document.getElementById("name").value = "";
-    document.getElementById("description").value = "";
-    document.getElementById("location").value = "";
-    document.getElementById("photo").value = "";
-    document.getElementById("preview").style.display = "none";
-    uploadedImage = "";
-  }
-
-  // ========== SUBMIT COMPLAINT ==========
   async function submitComplaint() {
     const btn = document.getElementById("submitBtn");
-    const t = currentLanguage === "en" ? 
-      { submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error. Backend unreachable?" } :
-      { submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال. الخادم لا يستجيب؟" };
-    
-    btn.disabled = true;
-    btn.innerText = t.submitting;
-    const complaint = {
-      name: document.getElementById("name").value || "Anonymous",
-      category: document.getElementById("category").options[document.getElementById("category").selectedIndex].getAttribute(currentLanguage === "en" ? "data-en" : "data-ar") || document.getElementById("category").value,
-      description: document.getElementById("description").value,
-      location: document.getElementById("location").value,
-      photo: uploadedImage,
-      deviceToken: deviceToken
-    };
+    btn.disabled = true; btn.innerText = currentLang === "en" ? "Submitting..." : "جاري الإرسال...";
+    const selectedPriority = document.getElementById("priority").value;
+    const complaint = { name: document.getElementById("name").value || "Anonymous", category: document.getElementById("category").value, description: document.getElementById("description").value, location: document.getElementById("location").value, photo: uploadedImage, deviceToken: deviceToken, priority: selectedPriority };
     try {
       const res = await fetch(`${API_URL}/api/complaints`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(complaint) });
       const data = await res.json();
       const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
       tokens[data.id] = data.privateToken;
       localStorage.setItem("cityfix_complaint_tokens", JSON.stringify(tokens));
-      showToast(`${t.submitted} ${data.id}`, "info");
-      clearForm();
-      loadMyComplaints();
-      startLiveTracking();
-    } catch(err) { showToast(t.error, "error"); }
-    btn.disabled = false;
-    btn.innerText = currentLanguage === "en" ? "🚀 Submit Report" : "🚀 إرسال البلاغ";
+      showToast(`${currentLang === "en" ? "✅ Submitted! Case ID: " : "✅ تم الإرسال! معرف البلاغ: "}${data.id}`, "info");
+      clearForm(); loadMyComplaints(); startLiveTracking();
+    } catch(err) { showToast(currentLang === "en" ? "❌ Submission error." : "❌ خطأ في الإرسال.", "error"); }
+    btn.disabled = false; btn.innerText = currentLang === "en" ? "🚀 Submit Report" : "🚀 إرسال البلاغ";
   }
 
-  // ========== LOAD ALL USER COMPLAINTS ==========
   async function loadMyComplaints() {
-    const t = currentLanguage === "en" ? 
-      { noReports: "📭 No reports yet. Submit your first complaint above.", unableLoad: "❌ Unable to load complaints.", loading: "Loading your reports..." } :
-      { noReports: "📭 لا توجد بلاغات بعد. أرسل بلاغك الأول أعلاه.", unableLoad: "❌ تعذر تحميل البلاغات.", loading: "جاري تحميل بلاغاتك..." };
-    
     try {
       const res = await fetch(`${API_URL}/api/my-complaints`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceToken }) });
       const complaints = await res.json();
       const container = document.getElementById("allComplaintsList");
-      if (complaints.length === 0) { container.innerHTML = `<p style='text-align:center; padding:20px;'>${t.noReports}</p>`; return; }
+      if (complaints.length === 0) { container.innerHTML = `<p style='text-align:center; padding:20px;'>${currentLang === "en" ? "📭 No reports yet." : "📭 لا توجد بلاغات بعد."}</p>`; return; }
       complaints.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-      container.innerHTML = complaints.map(c => `
-        <div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')">
-          <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
-            <div><strong>📌 ${escapeHtml(c.category)}</strong> <span style="font-size: 11px;"> | ID: ${c.id}</span></div>
-            <span class="status-badge status-${c.status.replace(/ /g, '-')}" data-id="${c.id}">${c.status}</span>
-          </div>
-          <p style="margin-top: 8px;">${escapeHtml(c.description.substring(0, 80))}${c.description.length > 80 ? '…' : ''}</p>
-          <p style="margin-top: 6px; font-size: 12px;">📍 ${escapeHtml(c.location.substring(0, 60))}</p>
-          <p style="margin-top: 4px; font-size: 11px; opacity:0.6;">📅 ${new Date(c.createdAt).toLocaleString()}</p>
-        </div>
-      `).join("");
-      container.innerHTML += `<p style="font-size: 11px; margin-top: 8px; text-align:center; opacity:0.6;">${currentLanguage === "en" ? "💡 Click any complaint to view full details" : "💡 اضغط على أي بلاغ لعرض التفاصيل"}</p>`;
-    } catch(e) { document.getElementById("allComplaintsList").innerHTML = `<p style='text-align:center; padding:20px;'>${t.unableLoad}</p>`; }
+      container.innerHTML = complaints.map(c => {
+        const statusClass = `status-${c.status.replace(/ /g, '-')}`;
+        const statusText = c.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (c.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
+        const priorityClass = c.priority === "Critical" ? "priority-Critical" : (c.priority === "High" ? "priority-High" : "priority-Normal");
+        const priorityText = c.priority === "Critical" ? (currentLang === "en" ? "CRITICAL" : "طارئ") : (c.priority === "High" ? (currentLang === "en" ? "HIGH" : "عالية") : (currentLang === "en" ? "Normal" : "عادي"));
+        return `<div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')"><div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;"><div><strong>📌 ${escapeHtml(c.category)}</strong> <span style="font-size: 11px;"> | ID: ${c.id}</span><span class="priority-badge ${priorityClass}">${priorityText}</span></div><span class="status-badge ${statusClass}" data-id="${c.id}">${statusText}</span></div><p style="margin-top: 8px;">${escapeHtml(c.description.substring(0, 80))}${c.description.length > 80 ? '…' : ''}</p><p style="margin-top: 6px; font-size: 12px;">📍 ${escapeHtml(c.location.substring(0, 60))}</p><p style="margin-top: 4px; font-size: 11px; opacity:0.6;">📅 ${new Date(c.createdAt).toLocaleDateString(currentLang === "en" ? "en-US" : "ar-EG")}</p></div>`;
+      }).join("");
+      container.innerHTML += `<p style="font-size: 11px; margin-top: 8px; text-align:center; opacity:0.6;">${currentLang === "en" ? "💡 Click any complaint to view full details" : "💡 اضغط على أي بلاغ لعرض التفاصيل"}</p>`;
+    } catch(e) { document.getElementById("allComplaintsList").innerHTML = `<p style='text-align:center; padding:20px;'>${currentLang === "en" ? "❌ Unable to load complaints." : "❌ تعذر تحميل البلاغات."}</p>`; }
   }
 
-  // ========== VIEW DETAILS ==========
   async function viewComplaintDetails(complaintId) {
     const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
     const privateToken = tokens[complaintId];
-    if (!privateToken) { showToast(currentLanguage === "en" ? "Cannot access details" : "لا يمكن الوصول للتفاصيل", "error"); return; }
+    if (!privateToken) { showToast(currentLang === "en" ? "Cannot access details" : "لا يمكن الوصول للتفاصيل", "error"); return; }
     try {
       const res = await fetch(`${API_URL}/api/complaint/${complaintId}/${privateToken}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
-      let statusClass = `status-${data.status.replace(/ /g, '-')}`;
-      document.getElementById("trackResult").innerHTML = `
-        <div class="track-result-card">
-          <div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${data.status}</span></div>
-          <p><strong>${currentLanguage === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p>
-          <p><strong>${currentLanguage === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p>
-          <p><strong>${currentLanguage === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p>
-          <p><strong>${currentLanguage === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p>
-          <p><strong>${currentLanguage === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
-          ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
-        </div>`;
+      const statusClass = `status-${data.status.replace(/ /g, '-')}`;
+      const statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
+      const priorityClass = data.priority === "Critical" ? "priority-Critical" : (data.priority === "High" ? "priority-High" : "priority-Normal");
+      const priorityText = data.priority === "Critical" ? (currentLang === "en" ? "CRITICAL" : "طارئ") : (data.priority === "High" ? (currentLang === "en" ? "HIGH" : "عالية") : (currentLang === "en" ? "Normal" : "عادي"));
+      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><h3>📌 ${escapeHtml(data.category)} <span class="priority-badge ${priorityClass}">${priorityText}</span></h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
       document.getElementById("trackResult").scrollIntoView({ behavior: "smooth" });
-    } catch(e) { showToast(currentLanguage === "en" ? "Error loading details" : "خطأ في تحميل التفاصيل", "error"); }
+    } catch(e) { showToast(currentLang === "en" ? "Error loading details" : "خطأ في تحميل التفاصيل", "error"); }
   }
 
   async function trackSpecificComplaint() {
     const caseId = document.getElementById("trackId").value.trim();
-    if (!caseId) { showToast(currentLanguage === "en" ? "Enter a Case ID" : "أدخل معرف البلاغ", "warning"); return; }
+    if (!caseId) { showToast(currentLang === "en" ? "Enter a Case ID" : "أدخل معرف البلاغ", "warning"); return; }
     const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
     const privateToken = tokens[caseId];
-    if (!privateToken) { document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c; text-align:center; padding:20px;">${currentLanguage === "en" ? "❌ You can only track complaints you submitted from this device." : "❌ يمكنك فقط تتبع البلاغات التي أرسلتها من هذا الجهاز."}</p>`; return; }
+    if (!privateToken) { document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c; text-align:center; padding:20px;">${currentLang === "en" ? "❌ You can only track complaints you submitted from this device." : "❌ يمكنك فقط تتبع البلاغات التي أرسلتها من هذا الجهاز."}</p>`; return; }
     try {
       const res = await fetch(`${API_URL}/api/complaint/${caseId}/${privateToken}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
-      let statusClass = `status-${data.status.replace(/ /g, '-')}`;
-      document.getElementById("trackResult").innerHTML = `
-        <div class="track-result-card">
-          <div style="display:flex; justify-content:space-between;"><h3>📌 ${escapeHtml(data.category)}</h3><span class="status-badge ${statusClass}">${data.status}</span></div>
-          <p><strong>${currentLanguage === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p>
-          <p><strong>${currentLanguage === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p>
-          <p><strong>${currentLanguage === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p>
-          <p><strong>${currentLanguage === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p>
-          <p><strong>${currentLanguage === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>
-          ${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}
-        </div>`;
-    } catch(e) { document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">${currentLanguage === "en" ? "❌ Complaint not found" : "❌ لم يتم العثور على البلاغ"}</p>`; }
+      const statusClass = `status-${data.status.replace(/ /g, '-')}`;
+      const statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
+      const priorityClass = data.priority === "Critical" ? "priority-Critical" : (data.priority === "High" ? "priority-High" : "priority-Normal");
+      const priorityText = data.priority === "Critical" ? (currentLang === "en" ? "CRITICAL" : "طارئ") : (data.priority === "High" ? (currentLang === "en" ? "HIGH" : "عالية") : (currentLang === "en" ? "Normal" : "عادي"));
+      document.getElementById("trackResult").innerHTML = `<div class="track-result-card"><div style="display:flex; justify-content:space-between;"><h3>📌 ${escapeHtml(data.category)} <span class="priority-badge ${priorityClass}">${priorityText}</span></h3><span class="status-badge ${statusClass}">${statusText}</span></div><p><strong>${currentLang === "en" ? "Description:" : "الوصف:"}</strong> ${escapeHtml(data.description)}</p><p><strong>${currentLang === "en" ? "📍 Location:" : "📍 الموقع:"}</strong> ${escapeHtml(data.location)}</p><p><strong>${currentLang === "en" ? "Reported by:" : "مقدم البلاغ:"}</strong> ${escapeHtml(data.name)}</p><p><strong>${currentLang === "en" ? "📅 Reported:" : "📅 تاريخ الإبلاغ:"}</strong> ${new Date(data.createdAt).toLocaleString()}</p><p><strong>${currentLang === "en" ? "🔄 Last update:" : "🔄 آخر تحديث:"}</strong> ${new Date(data.updatedAt).toLocaleString()}</p>${data.photo ? `<img src="${data.photo}" style="max-width:100%; margin-top:12px; border-radius:16px;">` : ""}</div>`;
+    } catch(e) { document.getElementById("trackResult").innerHTML = `<p style="color:#e74c3c;">${currentLang === "en" ? "❌ Complaint not found" : "❌ لم يتم العثور على البلاغ"}</p>`; }
   }
 
-  // ========== LIVE STATUS UPDATES ==========
   async function checkForStatusUpdates() {
     const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
     for (const [id, token] of Object.entries(tokens)) {
@@ -627,38 +301,19 @@
         const data = await res.json();
         const prev = previousStatusMap[id];
         if (prev && prev !== data.status) {
-          let statusText = data.status === "Pending" ? "⏳ Pending" : (data.status === "In Progress" ? "🔄 In Progress" : "✅ Resolved");
-          let statusAr = data.status === "Pending" ? "⏳ قيد الانتظار" : (data.status === "In Progress" ? "🔄 قيد المعالجة" : "✅ تم الحل");
-          showToast(`${currentLanguage === "en" ? `🔔 Status update for complaint ${id}<br>New status: ${statusText}` : `🔔 تحديث حالة البلاغ ${id}<br>الحالة الجديدة: ${statusAr}`}`, "info");
+          let statusText = data.status === "Pending" ? (currentLang === "en" ? "Pending" : "قيد الانتظار") : (data.status === "In Progress" ? (currentLang === "en" ? "In Progress" : "قيد المعالجة") : (currentLang === "en" ? "Resolved" : "تم الحل"));
+          showToast(`${currentLang === "en" ? `🔔 Status update for complaint ${id}<br>New status: ${statusText}` : `🔔 تحديث حالة البلاغ ${id}<br>الحالة الجديدة: ${statusText}`}`, "info");
           const badge = document.querySelector(`.status-badge[data-id="${id}"]`);
-          if (badge) { badge.className = `status-badge status-${data.status.replace(/ /g, '-')}`; badge.innerText = data.status; }
+          if (badge) { badge.className = `status-badge status-${data.status.replace(/ /g, '-')}`; badge.innerText = statusText; }
         }
         previousStatusMap[id] = data.status;
       } catch(e) {}
     }
     loadMyComplaints();
   }
-
-  function startLiveTracking() {
-    if (updateInterval) clearInterval(updateInterval);
-    updateInterval = setInterval(checkForStatusUpdates, 5000);
-  }
-
-  async function initStatusMap() {
-    const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}");
-    for (const [id, token] of Object.entries(tokens)) {
-      try {
-        const res = await fetch(`${API_URL}/api/complaint/${id}/${token}`);
-        if (res.ok) { const data = await res.json(); previousStatusMap[id] = data.status; }
-      } catch(e) {}
-    }
-    loadMyComplaints();
-    startLiveTracking();
-  }
-
+  function startLiveTracking() { if (updateInterval) clearInterval(updateInterval); updateInterval = setInterval(checkForStatusUpdates, 5000); }
+  async function initStatusMap() { const tokens = JSON.parse(localStorage.getItem("cityfix_complaint_tokens") || "{}"); for (const [id, token] of Object.entries(tokens)) { try { const res = await fetch(`${API_URL}/api/complaint/${id}/${token}`); if (res.ok) { const data = await res.json(); previousStatusMap[id] = data.status; } } catch(e) {} } loadMyComplaints(); startLiveTracking(); }
   function escapeHtml(str) { if (!str) return ""; return str.replace(/[&<>]/g, m => m === "&" ? "&amp;" : m === "<" ? "&lt;" : "&gt;"); }
-
-  setLanguage(currentLanguage);
   initStatusMap();
 </script>
 </body>
