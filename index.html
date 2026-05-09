@@ -8,10 +8,11 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; }
     :root {
       --bg: #f5f5f0; --card: #ffffff; --text: #111; --primary: #7b1e3a;
-      --secondary: #1d4d3d; --accent: #c6a15b; --input: #f0f0f0;
+      --secondary: #1d4d3d; --accent: #c6a15b; --input: #f0f0f0; --border: #ddd9cc;
     }
-    .dark { --bg: #08110f; --card: #101b18; --text: #fff; --primary: #8f2347; --secondary: #295d4b; --accent: #d4b16a; --input: #172420; }
+    .dark { --bg: #08110f; --card: #101b18; --text: #fff; --primary: #8f2347; --secondary: #295d4b; --accent: #d4b16a; --input: #172420; --border: #25332e; }
     body { background: var(--bg); color: var(--text); transition: 0.3s; }
+    body[dir="rtl"] { text-align: right; }
     .container { max-width: 1000px; margin: auto; padding: 20px; }
     .nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 15px; }
     .logo { font-size: 44px; font-weight: 800; color: var(--primary); }
@@ -19,7 +20,7 @@
     .toggle-btn { background: var(--input); border: 1px solid var(--border); padding: 10px 16px; border-radius: 40px; cursor: pointer; font-weight: 600; }
     .hero { text-align: center; padding: 40px 0 20px; }
     .hero h1 { font-size: 52px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .card { background: var(--card); padding: 28px; border-radius: 28px; margin-top: 24px; border: 1px solid #ddd9cc; }
+    .card { background: var(--card); padding: 28px; border-radius: 28px; margin-top: 24px; border: 1px solid var(--border); }
     input, textarea, select { width: 100%; padding: 16px; margin-top: 14px; border: none; border-radius: 16px; background: var(--input); color: var(--text); }
     textarea { min-height: 120px; resize: vertical; }
     button { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-weight: 700; cursor: pointer; }
@@ -43,65 +44,90 @@
   <div class="nav">
     <div class="logo">🏙️ CityFix</div>
     <div class="toggle-group">
+      <button class="toggle-btn" id="langToggleBtn" onclick="toggleLanguage()">🇦🇪 العربية</button>
       <button class="toggle-btn" onclick="toggleTheme()">🌗 Theme</button>
     </div>
   </div>
   <div class="hero">
-    <h1>Report & Track<br>Civic Issues</h1>
-    <p>Your voice builds better cities — transparent, accountable, fast.</p>
+    <h1 id="heroTitle">Report & Track<br>Civic Issues</h1>
+    <p id="heroSub">Your voice builds better cities — transparent, accountable, fast.</p>
   </div>
   <div id="toastNotification" class="toast-notification"></div>
 
   <div class="card">
-    <h2>📝 Report an Issue</h2>
+    <h2 id="reportTitle">📝 Report an Issue</h2>
     <input id="name" placeholder="Your Name (required)">
     <input id="phone" type="tel" placeholder="📞 Phone Number (optional)">
     <select id="category">
-      <optgroup label="🚨 EMERGENCY">
-        <option>Fire Hazard</option><option>Building Collapse Risk</option><option>Flooding</option><option>Gas Leak</option><option>Open Manholes</option>
+      <option id="defaultOption" value="" disabled selected>🔽 Select an issue type</option>
+      <optgroup id="emergencyGroup" label="🚨 EMERGENCY / CRITICAL">
+        <option value="Fire Hazard">🚨 Fire Hazard</option>
+        <option value="Building Collapse Risk">🏚️ Building Collapse Risk</option>
+        <option value="Flooding/Waterlogging">🌊 Flooding</option>
+        <option value="Gas Leak">💨 Gas Leak</option>
+        <option value="Open Manholes (Safety Hazard)">⚠️ Open Manholes</option>
       </optgroup>
-      <optgroup label="🏗️ INFRASTRUCTURE">
-        <option>Roads & Potholes</option><option>Drainage Blockage</option><option>Footpath Damage</option><option>Building Violations</option>
+      <optgroup id="infraGroup" label="🏗️ INFRASTRUCTURE">
+        <option value="Roads & Potholes">🛣️ Roads & Potholes</option>
+        <option value="Drainage/Stormwater Blockage">💧 Drainage Blockage</option>
+        <option value="Footpath Damage">👣 Footpath Damage</option>
+        <option value="Building Violations">🏗️ Building Violations</option>
       </optgroup>
-      <optgroup label="💧 UTILITIES">
-        <option>Water Supply</option><option>Electricity</option><option>Sewage Blockage</option><option>Street Light Outage</option>
+      <optgroup id="utilsGroup" label="💧 UTILITIES">
+        <option value="Water Supply">🚰 Water Supply</option>
+        <option value="Electricity">⚡ Electricity</option>
+        <option value="Sewage Blockage">🚽 Sewage Blockage</option>
+        <option value="Street Light Outage">💡 Street Light Outage</option>
       </optgroup>
-      <optgroup label="🚦 TRANSPORT & SAFETY">
-        <option>Traffic Signal Malfunction</option><option>Stray Animals</option><option>Missing Manhole Cover</option><option>Abandoned Vehicles</option>
+      <optgroup id="transportGroup" label="🚦 TRANSPORT & SAFETY">
+        <option value="Safety & Lighting">🔦 Safety & Lighting</option>
+        <option value="Traffic Signal Malfunction">🚥 Traffic Signal Malfunction</option>
+        <option value="Stray Animals">🐕 Stray Animals</option>
+        <option value="Missing Manhole Cover">🔘 Missing Manhole Cover</option>
+        <option value="Abandoned Vehicles">🚗 Abandoned Vehicles</option>
       </optgroup>
-      <optgroup label="🧹 CLEANLINESS">
-        <option>Cleanliness & Waste</option><option>Illegal Dumping</option><option>Overflowing Bins</option>
+      <optgroup id="cleanGroup" label="🧹 CLEANLINESS">
+        <option value="Cleanliness & Waste">🗑️ Cleanliness & Waste</option>
+        <option value="Illegal Dumping">🚛 Illegal Dumping</option>
+        <option value="Overflowing Bins">🗑️ Overflowing Bins</option>
       </optgroup>
-      <optgroup label="🌳 ENVIRONMENT">
-        <option>Tree Fall</option><option>Air Pollution</option><option>Noise Pollution</option><option>Mosquito Infestation</option>
+      <optgroup id="envGroup" label="🌳 ENVIRONMENT">
+        <option value="Tree Fall/Dangerous Trees">🌲 Tree Fall</option>
+        <option value="Air Pollution">🌫️ Air Pollution</option>
+        <option value="Noise Pollution">🔊 Noise Pollution</option>
+        <option value="Mosquito Infestation">🦟 Mosquito Infestation</option>
       </optgroup>
-      <optgroup label="📱 DIGITAL">
-        <option>Public WiFi Not Working</option><option>Government Website Down</option>
+      <optgroup id="digitalGroup" label="📡 DIGITAL">
+        <option value="Public WiFi Not Working">📶 WiFi Issue</option>
+        <option value="Government Website Down">💻 Website Down</option>
       </optgroup>
-      <optgroup label="📋 OTHER"><option>Others</option></optgroup>
+      <optgroup id="otherGroup" label="📋 OTHER">
+        <option value="Others">📋 Others</option>
+      </optgroup>
     </select>
     <textarea id="description" placeholder="Describe the issue in detail..."></textarea>
     <input id="location" placeholder="📍 Location">
     <div class="grid">
-      <button onclick="useGPS()">📍 Detect Location</button>
-      <button onclick="clearForm()">🗑️ Clear</button>
+      <button id="gpsBtn" onclick="useGPS()">📍 Detect Location</button>
+      <button id="clearBtn" onclick="clearForm()">🗑️ Clear</button>
     </div>
-    <div class="gps-hint">💡 Click "Detect Location" to auto-fill your address</div>
+    <div class="gps-hint" id="gpsHint">💡 Click "Detect Location" to auto-fill your address</div>
     <input type="file" id="photo" accept="image/*">
     <img id="preview" class="preview">
-    <button onclick="submitComplaint()">🚀 Submit Report</button>
+    <button id="submitBtn" onclick="submitComplaint()">🚀 Submit Report</button>
   </div>
 
   <div class="card">
-    <h2>📋 Your Complaints <span class="live-badge">LIVE</span></h2>
+    <h2 id="complaintsTitle">📋 Your Complaints <span class="live-badge">LIVE</span></h2>
     <div id="allComplaintsList">Loading...</div>
-    <button onclick="loadMyComplaints()" style="background: var(--input); color: var(--text); margin-top: 12px;">⟳ Refresh</button>
+    <button id="refreshBtn" onclick="loadMyComplaints()" style="background: var(--input); color: var(--text); margin-top: 12px;">⟳ Refresh</button>
   </div>
 
   <div class="card">
-    <h2>🔍 Track a Specific Complaint</h2>
-    <input id="trackId" placeholder="Case ID (e.g., CFX-001)">
-    <button onclick="trackSpecificComplaint()">Track →</button>
+    <h2 id="trackTitle">🔍 Track a Specific Complaint</h2>
+    <p id="trackSub" style="margin-bottom: 10px;">Enter Case ID (e.g., CFX-001)</p>
+    <input id="trackId" placeholder="Case ID">
+    <button id="trackBtn" onclick="trackSpecificComplaint()">Track →</button>
     <div id="trackResult"></div>
   </div>
 </div>
@@ -109,52 +135,142 @@
 <script>
   const API_URL = "https://cityfix-backend-bq0n.onrender.com";
   let uploadedImage = "", deviceToken = null, updateInterval = null, previousStatusMap = {};
-  let currentTheme = localStorage.getItem("theme") || "light";
+  let currentLang = localStorage.getItem("cityfix_lang") || "en";
 
-  function toggleTheme() {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
-  }
-  if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
-
-  function showToast(msg) {
-    const toast = document.getElementById("toastNotification");
-    toast.innerHTML = msg;
-    toast.style.display = "block";
-    setTimeout(() => toast.style.display = "none", 4000);
-  }
-
-  function getDeviceToken() {
-    let token = localStorage.getItem("deviceToken");
-    if (!token) {
-      token = Math.random().toString(36).substring(2, 20);
-      localStorage.setItem("deviceToken", token);
+  const translations = {
+    en: {
+      heroTitle: "Report & Track<br>Civic Issues", heroSub: "Your voice builds better cities — transparent, accountable, fast.",
+      reportTitle: "📝 Report an Issue", namePlace: "Your Name (required)", phonePlace: "📞 Phone Number (optional)",
+      descPlace: "Describe the issue in detail...", locPlace: "📍 Location", gpsBtn: "📍 Detect Location",
+      clearBtn: "🗑️ Clear", gpsHint: "💡 Click \"Detect Location\" to auto-fill your address", submitBtn: "🚀 Submit Report",
+      complaintsTitle: "📋 Your Complaints", refreshBtn: "⟳ Refresh", trackTitle: "🔍 Track a Specific Complaint",
+      trackSub: "Enter Case ID (e.g., CFX-001)", trackPlace: "Case ID", trackBtn: "Track →",
+      noReports: "No reports yet. Submit your first complaint above.", clickHint: "💡 Click any complaint to view full details",
+      submitting: "Submitting...", submitted: "✅ Submitted! Case ID: ", error: "❌ Submission error",
+      gpsSuccess: "📍 Location detected!", gpsAllow: "Allow location access", statusUpdate: "🔔 Status update for complaint"
+    },
+    ar: {
+      heroTitle: "الإبلاغ عن المشكلات<br>وتتبعها", heroSub: "صوتك يبني مدناً أفضل — شفافية، مساءلة، وسرعة",
+      reportTitle: "📝 الإبلاغ عن مشكلة", namePlace: "اسمك (مطلوب)", phonePlace: "📞 رقم الهاتف (اختياري)",
+      descPlace: "صف المشكلة بالتفصيل...", locPlace: "📍 الموقع", gpsBtn: "📍 تحديد الموقع",
+      clearBtn: "🗑️ مسح", gpsHint: "💡 اضغط \"تحديد الموقع\" لملء عنوانك تلقائياً", submitBtn: "🚀 إرسال البلاغ",
+      complaintsTitle: "📋 بلاغاتك", refreshBtn: "⟳ تحديث", trackTitle: "🔍 تتبع بلاغ محدد",
+      trackSub: "أدخل معرف البلاغ (مثال: CFX-001)", trackPlace: "معرف البلاغ", trackBtn: "تتبع ←",
+      noReports: "📭 لا توجد بلاغات بعد. أرسل بلاغك الأول أعلاه.", clickHint: "💡 اضغط على أي بلاغ لعرض التفاصيل",
+      submitting: "جاري الإرسال...", submitted: "✅ تم الإرسال! معرف البلاغ: ", error: "❌ خطأ في الإرسال",
+      gpsSuccess: "📍 تم تحديد الموقع!", gpsAllow: "اسمح بالوصول للموقع", statusUpdate: "🔔 تحديث حالة البلاغ"
     }
-    return token;
+  };
+
+  const categoryMap = {
+    "Select an issue type": { en: "🔽 Select an issue type", ar: "🔽 اختر نوع المشكلة" },
+    "Fire Hazard": { en: "🚨 Fire Hazard", ar: "🚨 خطر حريق" },
+    "Building Collapse Risk": { en: "🏚️ Building Collapse Risk", ar: "🏚️ خطر انهيار مبنى" },
+    "Flooding/Waterlogging": { en: "🌊 Flooding", ar: "🌊 فيضانات" },
+    "Gas Leak": { en: "💨 Gas Leak", ar: "💨 تسرب غاز" },
+    "Open Manholes (Safety Hazard)": { en: "⚠️ Open Manholes", ar: "⚠️ فتحات صرف مكشوفة" },
+    "Roads & Potholes": { en: "🛣️ Roads & Potholes", ar: "🛣️ الطرق والحفر" },
+    "Drainage/Stormwater Blockage": { en: "💧 Drainage Blockage", ar: "💧 انسداد الصرف" },
+    "Footpath Damage": { en: "👣 Footpath Damage", ar: "👣 تلف الأرصفة" },
+    "Building Violations": { en: "🏗️ Building Violations", ar: "🏗️ مخالفات البناء" },
+    "Water Supply": { en: "🚰 Water Supply", ar: "🚰 إمدادات المياه" },
+    "Electricity": { en: "⚡ Electricity", ar: "⚡ الكهرباء" },
+    "Sewage Blockage": { en: "🚽 Sewage Blockage", ar: "🚽 انسداد المجاري" },
+    "Street Light Outage": { en: "💡 Street Light Outage", ar: "💡 انطفاء أعمدة الإنارة" },
+    "Safety & Lighting": { en: "🔦 Safety & Lighting", ar: "🔦 السلامة والإضاءة" },
+    "Traffic Signal Malfunction": { en: "🚥 Traffic Signal Malfunction", ar: "🚥 عطل إشارة المرور" },
+    "Stray Animals": { en: "🐕 Stray Animals", ar: "🐕 حيوانات ضالة" },
+    "Missing Manhole Cover": { en: "🔘 Missing Manhole Cover", ar: "🔘 غياب غطاء فتحة الصرف" },
+    "Abandoned Vehicles": { en: "🚗 Abandoned Vehicles", ar: "🚗 مركبات مهجورة" },
+    "Cleanliness & Waste": { en: "🗑️ Cleanliness & Waste", ar: "🗑️ النظافة والنفايات" },
+    "Illegal Dumping": { en: "🚛 Illegal Dumping", ar: "🚛 رمي النفايات غير القانوني" },
+    "Overflowing Bins": { en: "🗑️ Overflowing Bins", ar: "🗑️ حاويات ممتلئة" },
+    "Tree Fall/Dangerous Trees": { en: "🌲 Tree Fall", ar: "🌲 سقوط الأشجار" },
+    "Air Pollution": { en: "🌫️ Air Pollution", ar: "🌫️ تلوث الهواء" },
+    "Noise Pollution": { en: "🔊 Noise Pollution", ar: "🔊 تلوث ضوضائي" },
+    "Mosquito Infestation": { en: "🦟 Mosquito Infestation", ar: "🦟 انتشار البعوض" },
+    "Public WiFi Not Working": { en: "📶 WiFi Issue", ar: "📶 واي فاي لا يعمل" },
+    "Government Website Down": { en: "💻 Website Down", ar: "💻 تعطل موقع حكومي" },
+    "Others": { en: "📋 Others", ar: "📋 أخرى" }
+  };
+
+  const optgroupLabels = {
+    emergencyGroup: { en: "🚨 EMERGENCY / CRITICAL", ar: "🚨 طوارئ / حرجة" },
+    infraGroup: { en: "🏗️ INFRASTRUCTURE", ar: "🏗️ البنية التحتية" },
+    utilsGroup: { en: "💧 UTILITIES", ar: "💧 المرافق" },
+    transportGroup: { en: "🚦 TRANSPORT & SAFETY", ar: "🚦 النقل والسلامة" },
+    cleanGroup: { en: "🧹 CLEANLINESS", ar: "🧹 النظافة" },
+    envGroup: { en: "🌳 ENVIRONMENT", ar: "🌳 البيئة" },
+    digitalGroup: { en: "📡 DIGITAL", ar: "📡 الرقمية" },
+    otherGroup: { en: "📋 OTHER", ar: "📋 أخرى" }
+  };
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem("cityfix_lang", lang);
+    document.documentElement.lang = lang === "en" ? "en" : "ar";
+    document.body.dir = lang === "en" ? "ltr" : "rtl";
+    document.getElementById("langToggleBtn").innerText = lang === "en" ? "🇦🇪 العربية" : "🇬🇧 English";
+
+    const t = translations[lang];
+    document.getElementById("heroTitle").innerHTML = t.heroTitle;
+    document.getElementById("heroSub").innerText = t.heroSub;
+    document.getElementById("reportTitle").innerHTML = t.reportTitle;
+    document.getElementById("name").placeholder = t.namePlace;
+    document.getElementById("phone").placeholder = t.phonePlace;
+    document.getElementById("description").placeholder = t.descPlace;
+    document.getElementById("location").placeholder = t.locPlace;
+    document.getElementById("gpsBtn").innerText = t.gpsBtn;
+    document.getElementById("clearBtn").innerText = t.clearBtn;
+    document.getElementById("gpsHint").innerText = t.gpsHint;
+    document.getElementById("submitBtn").innerText = t.submitBtn;
+    document.getElementById("complaintsTitle").innerHTML = t.complaintsTitle + ' <span class="live-badge">LIVE</span>';
+    document.getElementById("refreshBtn").innerText = t.refreshBtn;
+    document.getElementById("trackTitle").innerHTML = t.trackTitle;
+    document.getElementById("trackSub").innerText = t.trackSub;
+    document.getElementById("trackId").placeholder = t.trackPlace;
+    document.getElementById("trackBtn").innerText = t.trackBtn;
+
+    // Update optgroup labels
+    for (const [id, labels] of Object.entries(optgroupLabels)) {
+      const el = document.getElementById(id);
+      if (el) el.label = labels[lang];
+    }
+
+    // Update category options
+    const options = document.querySelectorAll("#category option");
+    options.forEach(opt => {
+      const val = opt.value;
+      if (categoryMap[val]) opt.innerText = categoryMap[val][lang];
+    });
   }
+
+  function toggleLanguage() { setLanguage(currentLang === "en" ? "ar" : "en"); loadMyComplaints(); }
+  function toggleTheme() { document.body.classList.toggle("dark"); localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light"); }
+  if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
+  setLanguage(currentLang);
+
+  function showToast(msg) { const toast = document.getElementById("toastNotification"); toast.innerHTML = msg; toast.style.display = "block"; setTimeout(() => toast.style.display = "none", 4000); }
+
+  function getDeviceToken() { let token = localStorage.getItem("deviceToken"); if (!token) { token = Math.random().toString(36).substring(2, 20); localStorage.setItem("deviceToken", token); } return token; }
   deviceToken = getDeviceToken();
 
   document.getElementById("photo")?.addEventListener("change", function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      uploadedImage = ev.target.result;
-      document.getElementById("preview").src = uploadedImage;
-      document.getElementById("preview").style.display = "block";
-    };
+    reader.onload = (ev) => { uploadedImage = ev.target.result; document.getElementById("preview").src = uploadedImage; document.getElementById("preview").style.display = "block"; };
     reader.readAsDataURL(file);
   });
 
   async function useGPS() {
-    if (!navigator.geolocation) return showToast("GPS not supported");
+    if (!navigator.geolocation) return showToast(translations[currentLang].gpsAllow);
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
         const data = await res.json();
         document.getElementById("location").value = data.display_name;
-        showToast("📍 Location detected!");
-      } catch(e) { showToast("Location detected"); }
+        showToast(translations[currentLang].gpsSuccess);
+      } catch(e) { showToast(translations[currentLang].gpsSuccess); }
     });
   }
 
@@ -170,10 +286,9 @@
 
   async function submitComplaint() {
     const name = document.getElementById("name").value.trim();
-    if (!name) { showToast("⚠️ Please enter your name"); return; }
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerText = "Submitting...";
+    if (!name) { showToast(translations[currentLang].namePlace.replace("(required)", "is required")); return; }
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true; btn.innerText = translations[currentLang].submitting;
     const complaint = {
       name, phone: document.getElementById("phone").value || "",
       category: document.getElementById("category").value,
@@ -187,12 +302,10 @@
       const tokens = JSON.parse(localStorage.getItem("complaintTokens") || "{}");
       tokens[data.id] = data.privateToken;
       localStorage.setItem("complaintTokens", JSON.stringify(tokens));
-      showToast(`✅ Submitted! Case ID: ${data.id}`);
-      clearForm();
-      loadMyComplaints();
-    } catch(err) { showToast("❌ Submission error"); }
-    btn.disabled = false;
-    btn.innerText = "🚀 Submit Report";
+      showToast(`${translations[currentLang].submitted}${data.id}`);
+      clearForm(); loadMyComplaints();
+    } catch(err) { showToast(translations[currentLang].error); }
+    btn.disabled = false; btn.innerText = translations[currentLang].submitBtn;
   }
 
   async function loadMyComplaints() {
@@ -200,7 +313,7 @@
       const res = await fetch(`${API_URL}/api/my-complaints`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deviceToken }) });
       const complaints = await res.json();
       const container = document.getElementById("allComplaintsList");
-      if (complaints.length === 0) { container.innerHTML = "<p>No reports yet. Submit your first complaint above.</p>"; return; }
+      if (complaints.length === 0) { container.innerHTML = `<p style="text-align:center; padding:20px;">${translations[currentLang].noReports}</p>`; return; }
       complaints.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
       container.innerHTML = complaints.map(c => `
         <div class="complaint-list-item" onclick="viewComplaintDetails('${c.id}')">
@@ -212,6 +325,7 @@
           <small>📍 ${c.location.substring(0, 60)} | ID: ${c.id}</small>
         </div>
       `).join("");
+      container.innerHTML += `<p style="font-size: 11px; margin-top: 8px; text-align:center;">${translations[currentLang].clickHint}</p>`;
     } catch(e) { console.error(e); }
   }
 
@@ -267,7 +381,7 @@
         const res = await fetch(`${API_URL}/api/complaint/${id}/${token}`);
         const data = await res.json();
         if (previousStatusMap[id] && previousStatusMap[id] !== data.status) {
-          showToast(`🔔 Complaint ${id} status changed to: ${data.status}`);
+          showToast(`${translations[currentLang].statusUpdate} ${id}: ${data.status}`);
         }
         previousStatusMap[id] = data.status;
       } catch(e) {}
